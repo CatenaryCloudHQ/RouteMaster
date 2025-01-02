@@ -4,9 +4,13 @@ import { YarnNodeLinker } from "projen/lib/javascript";
 const project = new awscdk.AwsCdkConstructLibrary({
   author: "Roman Naumenko",
   authorAddress: "hi@catenary.cloud",
+  packageName: "RouteMaster",
   cdkVersion: "2.173.2",
   majorVersion: 1,
   defaultReleaseBranch: "main",
+  release: true,
+  prerelease: "beta",
+  prettier: true,
   jsiiVersion: "~5.7.0",
   name: "RouteMaster",
   keywords: ["awscdk", "cdk", "route53", "cross-account", "aws orgs"],
@@ -28,9 +32,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     "cdk-cross-account-route53@1.0.1",
     "@trautonen/cdk-dns-validated-certificate@0.1.12",
   ],
-  bundledDeps: ["@aws-sdk/client-route-53"],
-  // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
+  bundledDeps: ["@aws-sdk/client-route-53", "@types/aws-lambda"],
   // devDeps: [],             /* Build dependencies for this module. */
-  // packageName: undefined,  /* The "name" in package.json. */
 });
 project.synth();

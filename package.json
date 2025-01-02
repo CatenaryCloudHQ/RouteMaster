@@ -1,5 +1,6 @@
 {
   "name": "RouteMaster",
+  "description": "High level construct to manage zones in a central account. Sets permissions via AWS Org",
   "repository": {
     "type": "git",
     "url": "https://github.com/CatenaryCloudHQ/RouteMaster.git"
@@ -34,7 +35,6 @@
     "organization": false
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^2",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.3",
     "@typescript-eslint/eslint-plugin": "^8",
@@ -43,8 +43,10 @@
     "commit-and-tag-version": "^12",
     "constructs": "10.0.5",
     "eslint": "^9",
+    "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.7.0",
     "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.1",
     "jest": "^29.7.0",
     "jest-junit": "^15",
     "jsii": "~5.7.0",
@@ -52,6 +54,7 @@
     "jsii-docgen": "^10.5.0",
     "jsii-pacmak": "^1.106.0",
     "jsii-rosetta": "~5.7.0",
+    "prettier": "^3.4.2",
     "projen": "^0.91.5",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
@@ -64,13 +67,19 @@
   "dependencies": {
     "@aws-sdk/client-route-53": "^3.716.0",
     "@trautonen/cdk-dns-validated-certificate": "0.1.12",
+    "@types/aws-lambda": "^8.10.146",
     "cdk-cross-account-route53": "1.0.1"
   },
   "bundledDependencies": [
-    "@aws-sdk/client-route-53"
+    "@aws-sdk/client-route-53",
+    "@types/aws-lambda"
   ],
   "keywords": [
-    "cdk"
+    "aws orgs",
+    "awscdk",
+    "cdk",
+    "cross-account",
+    "route53"
   ],
   "main": "lib/index.js",
   "license": "Apache-2.0",

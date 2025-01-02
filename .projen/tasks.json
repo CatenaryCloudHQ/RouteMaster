@@ -206,7 +206,9 @@
       "name": "release",
       "description": "Prepare a release from \"main\" branch",
       "env": {
-        "RELEASE": "true"
+        "RELEASE": "true",
+        "MAJOR": "1",
+        "PRERELEASE": "beta"
       },
       "steps": [
         {
@@ -273,13 +275,13 @@
       },
       "steps": [
         {
-          "exec": "yarn dlx npm-check-updates@16 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/jest,@types/node,eslint-import-resolver-typescript,eslint-plugin-import,jest,jsii-diff,jsii-pacmak,projen,ts-jest,ts-node,typescript,@aws-sdk/client-route-53"
+          "exec": "yarn dlx npm-check-updates@16 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/jest,@types/node,eslint-config-prettier,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,jest,jsii-diff,jsii-pacmak,prettier,projen,ts-jest,ts-node,typescript,@aws-sdk/client-route-53,@types/aws-lambda"
         },
         {
           "exec": "yarn install"
         },
         {
-          "exec": "yarn up @stylistic/eslint-plugin @types/jest @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser commit-and-tag-version eslint-import-resolver-typescript eslint-plugin-import eslint jest jest-junit jsii-diff jsii-docgen jsii-pacmak jsii-rosetta jsii projen ts-jest ts-node typescript @aws-sdk/client-route-53 aws-cdk-lib constructs @trautonen/cdk-dns-validated-certificate cdk-cross-account-route53"
+          "exec": "yarn up @types/jest @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser commit-and-tag-version eslint-config-prettier eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier eslint jest jest-junit jsii-diff jsii-docgen jsii-pacmak jsii-rosetta jsii prettier projen ts-jest ts-node typescript @aws-sdk/client-route-53 @types/aws-lambda aws-cdk-lib constructs @trautonen/cdk-dns-validated-certificate cdk-cross-account-route53"
         },
         {
           "exec": "npx projen"
