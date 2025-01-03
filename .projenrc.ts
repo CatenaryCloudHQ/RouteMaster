@@ -1,4 +1,5 @@
 import { awscdk, javascript } from "projen";
+import { JobStep } from "projen/lib/github/workflows-model";
 import { YarnNodeLinker } from "projen/lib/javascript";
 import { ReleaseTrigger } from "projen/lib/release";
 
@@ -38,8 +39,33 @@ const project = new awscdk.AwsCdkConstructLibrary({
   // devDeps: [],             /* Build dependencies for this module. */
 });
 
-project.addTask("install-yarn", {
-  exec: "corepack enable && yarn set version 4.6.0",
-});
+if (project.github) {
+  const workflow = project.github.workflows.find((wf) => wf.name === "build");
+
+  if (workflow) {
+    const buildJob = workflow.getJob("build");
+
+    if (buildJob && "steps" in buildJob) {
+      const getBuildSteps = buildJob.steps as unknown as () => JobStep[];
+      const buildJobSteps = getBuildSteps();
+
+      workflow.updateJob("build", {
+        ...buildJob,
+        steps: [
+          {
+            name: "Install Specific Yarn Version",
+            run: "corepack enable && yarn set version 4.6.0",
+          },
+          ...buildJobSteps.slice(0, 3),
+          {
+            name: "Compile JSII",
+            run: "pnpm projen compile",
+          },
+          ...buildJobSteps.slice(3),
+        ],
+      });
+    }
+  }
+}
 
 project.synth();
