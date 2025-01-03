@@ -36,7 +36,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     "@trautonen/cdk-dns-validated-certificate@0.1.12",
   ],
   bundledDeps: ["@aws-sdk/client-route-53", "@types/aws-lambda"],
-  // devDeps: [],             /* Build dependencies for this module. */
+  // devDeps: [] /* Build dependencies for this module. */,
 });
 
 if (project.github) {
@@ -44,10 +44,28 @@ if (project.github) {
 
   if (workflow) {
     const buildJob = workflow.getJob("build");
+    const jsJob = workflow.getJob("package-js");
 
-    if (buildJob && "steps" in buildJob) {
+    console.log("buildJob", buildJob);
+    console.log("jsJob", jsJob);
+
+    if (buildJob && "steps" in buildJob && jsJob && "steps" in jsJob) {
       const getBuildSteps = buildJob.steps as unknown as () => JobStep[];
       const buildJobSteps = getBuildSteps();
+      const jsJobSteps = jsJob.steps as unknown as JobStep[]; // Directly access steps
+
+      console.log("Js steps", jsJobSteps);
+
+      workflow.updateJob("package-js", {
+        ...jsJob,
+        steps: [
+          {
+            name: "Install Specific Yarn Version",
+            run: "corepack enable && yarn set version 4.6.0",
+          },
+          ...jsJobSteps, // Directly accessed steps
+        ],
+      });
 
       workflow.updateJob("build", {
         ...buildJob,
