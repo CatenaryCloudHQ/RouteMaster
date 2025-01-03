@@ -11,7 +11,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   majorVersion: 0,
   defaultReleaseBranch: "main",
   release: true,
-  releaseTrigger: ReleaseTrigger.manual(),
+  releaseTrigger: ReleaseTrigger.continuous(),
   prerelease: "beta",
   prettier: true,
   jsiiVersion: "~5.7.0",
