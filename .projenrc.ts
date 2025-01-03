@@ -1,5 +1,6 @@
 import { awscdk, javascript } from "projen";
 import { YarnNodeLinker } from "projen/lib/javascript";
+import { ReleaseTrigger } from "projen/lib/release";
 
 const project = new awscdk.AwsCdkConstructLibrary({
   author: "Roman Naumenko",
@@ -9,6 +10,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   majorVersion: 1,
   defaultReleaseBranch: "main",
   release: true,
+  releaseTrigger: ReleaseTrigger.manual(),
   prerelease: "beta",
   prettier: true,
   jsiiVersion: "~5.7.0",
@@ -21,7 +23,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   license: "Apache-2.0",
   repositoryUrl: "https://github.com/CatenaryCloudHQ/RouteMaster.git",
   yarnBerryOptions: {
-    version: "4.3.1",
+    version: "4.6.0",
     zeroInstalls: false,
     yarnRcOptions: {
       nodeLinker: YarnNodeLinker.NODE_MODULES,
@@ -35,4 +37,9 @@ const project = new awscdk.AwsCdkConstructLibrary({
   bundledDeps: ["@aws-sdk/client-route-53", "@types/aws-lambda"],
   // devDeps: [],             /* Build dependencies for this module. */
 });
+
+project.addTask("install-yarn", {
+  exec: "yarn set version 4.6.0",
+});
+
 project.synth();

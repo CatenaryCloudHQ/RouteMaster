@@ -15,12 +15,14 @@
     "docgen": "npx projen docgen",
     "eject": "npx projen eject",
     "eslint": "npx projen eslint",
+    "install-yarn": "npx projen install-yarn",
     "package": "npx projen package",
     "package-all": "npx projen package-all",
     "package:js": "npx projen package:js",
     "post-compile": "npx projen post-compile",
     "post-upgrade": "npx projen post-upgrade",
     "pre-compile": "npx projen pre-compile",
+    "publish:git": "npx projen publish:git",
     "release": "npx projen release",
     "test": "npx projen test",
     "test:watch": "npx projen test:watch",
@@ -87,7 +89,7 @@
     "access": "public"
   },
   "version": "0.0.0",
-  "packageManager": "yarn@4.3.1",
+  "packageManager": "yarn@4.6.0",
   "jest": {
     "coverageProvider": "v8",
     "testMatch": [
