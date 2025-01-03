@@ -8,7 +8,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorAddress: "hi@catenary.cloud",
   packageName: "RouteMaster",
   cdkVersion: "2.173.2",
-  majorVersion: 1,
+  majorVersion: 0,
   defaultReleaseBranch: "main",
   release: true,
   releaseTrigger: ReleaseTrigger.manual(),
@@ -46,15 +46,10 @@ if (project.github) {
     const buildJob = workflow.getJob("build");
     const jsJob = workflow.getJob("package-js");
 
-    console.log("buildJob", buildJob);
-    console.log("jsJob", jsJob);
-
     if (buildJob && "steps" in buildJob && jsJob && "steps" in jsJob) {
       const getBuildSteps = buildJob.steps as unknown as () => JobStep[];
       const buildJobSteps = getBuildSteps();
       const jsJobSteps = jsJob.steps as unknown as JobStep[]; // Directly access steps
-
-      console.log("Js steps", jsJobSteps);
 
       workflow.updateJob("package-js", {
         ...jsJob,
