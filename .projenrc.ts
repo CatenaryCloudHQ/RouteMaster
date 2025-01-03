@@ -56,12 +56,7 @@ if (project.github) {
             name: "Install Specific Yarn Version",
             run: "corepack enable && yarn set version 4.6.0",
           },
-          ...buildJobSteps.slice(0, 3),
-          {
-            name: "Compile JSII",
-            run: "pnpm projen compile",
-          },
-          ...buildJobSteps.slice(3),
+          ...buildJobSteps,
         ],
       });
     }

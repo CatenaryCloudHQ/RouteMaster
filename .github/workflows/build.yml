@@ -27,8 +27,6 @@ jobs:
           node-version: lts/*
       - name: Install dependencies
         run: yarn install
-      - name: Compile JSII
-        run: pnpm projen compile
       - name: build
         run: npx projen build
       - name: Find mutations
