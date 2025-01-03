@@ -39,7 +39,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
 });
 
 project.addTask("install-yarn", {
-  exec: "yarn set version 4.6.0",
+  exec: "corepack enable && yarn set version 4.6.0",
 });
 
 project.synth();
