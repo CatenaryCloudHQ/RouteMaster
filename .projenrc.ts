@@ -40,37 +40,52 @@ const project = new awscdk.AwsCdkConstructLibrary({
 });
 
 if (project.github) {
-  const workflow = project.github.workflows.find((wf) => wf.name === "build");
+  const buildWorkflow = project.github.workflows.find(
+    (wf) => wf.name === "build",
+  );
+  const releaseWorkflow = project.github.workflows.find(
+    (wf) => wf.name === "release",
+  );
 
-  if (workflow) {
-    const buildJob = workflow.getJob("build");
-    const jsJob = workflow.getJob("package-js");
+  if (buildWorkflow) {
+    const buildJob = buildWorkflow.getJob("build");
+    const jsJob = buildWorkflow.getJob("package-js");
 
     if (buildJob && "steps" in buildJob && jsJob && "steps" in jsJob) {
-      const getBuildSteps = buildJob.steps as unknown as () => JobStep[];
-      const buildJobSteps = getBuildSteps();
-      const jsJobSteps = jsJob.steps as unknown as JobStep[]; // Directly access steps
+      const corepack = {
+        name: "Install Specific Yarn Version",
+        run: "corepack enable && yarn set version 4.6.0",
+      };
 
-      workflow.updateJob("package-js", {
+      const buildSteps = buildJob.steps as unknown as () => JobStep[];
+      const jsSteps = jsJob.steps as unknown as JobStep[];
+
+      buildWorkflow.updateJob("package-js", {
         ...jsJob,
-        steps: [
-          {
-            name: "Install Specific Yarn Version",
-            run: "corepack enable && yarn set version 4.6.0",
-          },
-          ...jsJobSteps, // Directly accessed steps
-        ],
+        steps: [corepack, ...jsSteps],
       });
 
-      workflow.updateJob("build", {
+      buildWorkflow.updateJob("build", {
         ...buildJob,
-        steps: [
-          {
-            name: "Install Specific Yarn Version",
-            run: "corepack enable && yarn set version 4.6.0",
-          },
-          ...buildJobSteps,
-        ],
+        steps: [corepack, ...buildSteps()],
+      });
+    }
+  }
+
+  if (releaseWorkflow) {
+    const releaseJob = releaseWorkflow.getJob("release");
+
+    if (releaseJob && "steps" in releaseJob) {
+      const corepack = {
+        name: "Install Specific Yarn Version",
+        run: "corepack enable && yarn set version 4.6.0",
+      };
+
+      const releaseSteps = releaseJob.steps as unknown as JobStep[];
+
+      releaseWorkflow.updateJob("release", {
+        ...releaseJob,
+        steps: [corepack, ...releaseSteps],
       });
     }
   }
