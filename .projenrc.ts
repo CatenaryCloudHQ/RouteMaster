@@ -1,4 +1,4 @@
-import { awscdk, javascript } from "projen";
+import { awscdk, javascript, JsonPatch } from "projen";
 import { JobStep } from "projen/lib/github/workflows-model";
 import { YarnNodeLinker } from "projen/lib/javascript";
 import { ReleaseTrigger } from "projen/lib/release";
@@ -39,12 +39,24 @@ const project = new awscdk.AwsCdkConstructLibrary({
   // devDeps: [] /* Build dependencies for this module. */,
 });
 
+const res = project.github?.tryFindWorkflow("release");
+
+if (res) {
+  res.file?.patch(
+    JsonPatch.add("/jobs/release/steps/3", {
+      name: "Install Specific Yarn Version",
+      run: "corepack enable && yarn set version 4.6.0",
+    }),
+    JsonPatch.add("/jobs/release_npm/steps/2", {
+      name: "Install Specific Yarn Version",
+      run: "corepack enable && yarn set version 4.6.0",
+    }),
+  );
+}
+
 if (project.github) {
   const buildWorkflow = project.github.workflows.find(
     (wf) => wf.name === "build",
-  );
-  const releaseWorkflow = project.github.workflows.find(
-    (wf) => wf.name === "release",
   );
 
   if (buildWorkflow) {
@@ -68,24 +80,6 @@ if (project.github) {
       buildWorkflow.updateJob("build", {
         ...buildJob,
         steps: [corepack, ...buildSteps()],
-      });
-    }
-  }
-
-  if (releaseWorkflow) {
-    const releaseJob = releaseWorkflow.getJob("release");
-
-    if (releaseJob && "steps" in releaseJob) {
-      const corepack = {
-        name: "Install Specific Yarn Version",
-        run: "corepack enable && yarn set version 4.6.0",
-      };
-
-      const releaseSteps = releaseJob.steps as unknown as JobStep[];
-
-      releaseWorkflow.updateJob("release", {
-        ...releaseJob,
-        steps: [corepack, ...releaseSteps],
       });
     }
   }
