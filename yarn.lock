@@ -961,6 +961,44 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@catenarycloud/routemaster@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@catenarycloud/routemaster@workspace:."
+  dependencies:
+    "@aws-sdk/client-route-53": "npm:^3.716.0"
+    "@trautonen/cdk-dns-validated-certificate": "npm:0.1.12"
+    "@types/aws-lambda": "npm:^8.10.146"
+    "@types/jest": "npm:^29.5.14"
+    "@types/node": "npm:^22.10.3"
+    "@typescript-eslint/eslint-plugin": "npm:^8"
+    "@typescript-eslint/parser": "npm:^8"
+    aws-cdk-lib: "npm:2.173.2"
+    cdk-cross-account-route53: "npm:1.0.1"
+    commit-and-tag-version: "npm:^12"
+    constructs: "npm:10.0.5"
+    eslint: "npm:^9"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-import-resolver-typescript: "npm:^3.7.0"
+    eslint-plugin-import: "npm:^2.31.0"
+    eslint-plugin-prettier: "npm:^5.2.1"
+    jest: "npm:^29.7.0"
+    jest-junit: "npm:^15"
+    jsii: "npm:~5.7.0"
+    jsii-diff: "npm:^1.106.0"
+    jsii-docgen: "npm:^10.5.0"
+    jsii-pacmak: "npm:^1.106.0"
+    jsii-rosetta: "npm:~5.7.0"
+    prettier: "npm:^3.4.2"
+    projen: "npm:^0.91.5"
+    ts-jest: "npm:^29.2.5"
+    ts-node: "npm:^10.9.2"
+    typescript: "npm:^5.7.2"
+  peerDependencies:
+    aws-cdk-lib: ^2.173.2
+    constructs: ^10.0.5
+  languageName: unknown
+  linkType: soft
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -2398,44 +2436,6 @@ __metadata:
   checksum: 10c0/0f54694da32224d57b715385d4a6b668d2117379d1f3223dc758459246cca58fdc4c628b83e8a8883334e454a0a30aa198ede77c788b55537c1844f686a751f2
   languageName: node
   linkType: hard
-
-"RouteMaster@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "RouteMaster@workspace:."
-  dependencies:
-    "@aws-sdk/client-route-53": "npm:^3.716.0"
-    "@trautonen/cdk-dns-validated-certificate": "npm:0.1.12"
-    "@types/aws-lambda": "npm:^8.10.146"
-    "@types/jest": "npm:^29.5.14"
-    "@types/node": "npm:^22.10.3"
-    "@typescript-eslint/eslint-plugin": "npm:^8"
-    "@typescript-eslint/parser": "npm:^8"
-    aws-cdk-lib: "npm:2.173.2"
-    cdk-cross-account-route53: "npm:1.0.1"
-    commit-and-tag-version: "npm:^12"
-    constructs: "npm:10.0.5"
-    eslint: "npm:^9"
-    eslint-config-prettier: "npm:^9.1.0"
-    eslint-import-resolver-typescript: "npm:^3.7.0"
-    eslint-plugin-import: "npm:^2.31.0"
-    eslint-plugin-prettier: "npm:^5.2.1"
-    jest: "npm:^29.7.0"
-    jest-junit: "npm:^15"
-    jsii: "npm:~5.7.0"
-    jsii-diff: "npm:^1.106.0"
-    jsii-docgen: "npm:^10.5.0"
-    jsii-pacmak: "npm:^1.106.0"
-    jsii-rosetta: "npm:~5.7.0"
-    prettier: "npm:^3.4.2"
-    projen: "npm:^0.91.5"
-    ts-jest: "npm:^29.2.5"
-    ts-node: "npm:^10.9.2"
-    typescript: "npm:^5.7.2"
-  peerDependencies:
-    aws-cdk-lib: ^2.173.2
-    constructs: ^10.0.5
-  languageName: unknown
-  linkType: soft
 
 "abbrev@npm:^2.0.0":
   version: 2.0.0

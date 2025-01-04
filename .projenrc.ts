@@ -6,7 +6,7 @@ import { ReleaseTrigger } from "projen/lib/release";
 const project = new awscdk.AwsCdkConstructLibrary({
   author: "Roman Naumenko",
   authorAddress: "hi@catenary.cloud",
-  packageName: "RouteMaster",
+  packageName: "@catenarycloud/routemaster",
   cdkVersion: "2.173.2",
   majorVersion: 0,
   defaultReleaseBranch: "main",

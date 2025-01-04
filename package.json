@@ -1,5 +1,5 @@
 {
-  "name": "RouteMaster",
+  "name": "@catenarycloud/routemaster",
   "description": "High level construct to manage zones in a central account. Sets permissions via AWS Org",
   "repository": {
     "type": "git",
@@ -83,9 +83,6 @@
   ],
   "main": "lib/index.js",
   "license": "Apache-2.0",
-  "publishConfig": {
-    "access": "public"
-  },
   "version": "0.0.0",
   "packageManager": "yarn@4.6.0",
   "jest": {
