@@ -18,6 +18,7 @@ import {
 } from "aws-cdk-lib/custom-resources";
 import { CrossAccountRoute53Role } from "cdk-cross-account-route53";
 import { Construct } from "constructs";
+import { PublicHostedZoneClient } from "./publicHostedZoneClient";
 import { ReusableDelegationSet } from "./reusableSet";
 
 /**
@@ -59,8 +60,8 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
   private zoneIdParameters: Record<string, StringParameter> = {};
   private domains: string[] = [];
   private zoneGetterProvider: Provider;
-
   private props: IPublicHostedZoneWithIReusableDelegationSetProps;
+  private zoneHelper: PublicHostedZoneClient;
 
   /**
    * Creates a new PublicHostedZoneWithReusableDelegationSet construct.
@@ -75,7 +76,11 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
   ) {
     super(scope, id);
     this.props = props;
-
+    this.zoneHelper = new PublicHostedZoneClient(scope, "test", {
+      accountId: "",
+      domain: "",
+      region: "",
+    });
     const zoneGetterLambda = new NodejsFunction(this, "zone", {
       runtime: Runtime.NODEJS_20_X,
       handler: "handler",
@@ -237,14 +242,16 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
    * @throws If the zone is not shared before creating the role.
    */
   createRoute53Role(ou: string, zoneName: string, domain: string): void {
-    if (!this.zoneIdParameters[domain]) {
+    const tld = this.zoneHelper.processDomain(domain, true);
+
+    if (!this.zoneIdParameters[tld]) {
       throw new Error(`Zone ${domain} must be shared before creating a role.`);
     }
 
     const zone: IHostedZone = HostedZone.fromHostedZoneId(
       this,
       `import${zoneName}`,
-      this.zoneIdParameters[domain].stringValue,
+      this.zoneIdParameters[tld].stringValue,
     );
 
     new CrossAccountRoute53Role(this, `Route53Role${zoneName}`, {

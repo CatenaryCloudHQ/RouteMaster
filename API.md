@@ -2,6 +2,168 @@
 
 ## Constructs <a name="Constructs" id="Constructs"></a>
 
+### PublicHostedZoneClient <a name="PublicHostedZoneClient" id="@catenarycloud/routemaster.PublicHostedZoneClient"></a>
+
+CDK Construct for retrieving hosted zone ID and IAM role ARN from SSM.
+
+#### Initializers <a name="Initializers" id="@catenarycloud/routemaster.PublicHostedZoneClient.Initializer"></a>
+
+```typescript
+import { PublicHostedZoneClient } from '@catenarycloud/routemaster'
+
+new PublicHostedZoneClient(scope: Construct, id: string, props: PublicHostedZoneUtilsProps)
+```
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | *No description.* |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.Initializer.parameter.id">id</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.Initializer.parameter.props">props</a></code> | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneUtilsProps">PublicHostedZoneUtilsProps</a></code> | *No description.* |
+
+---
+
+##### `scope`<sup>Required</sup> <a name="scope" id="@catenarycloud/routemaster.PublicHostedZoneClient.Initializer.parameter.scope"></a>
+
+- *Type:* constructs.Construct
+
+---
+
+##### `id`<sup>Required</sup> <a name="id" id="@catenarycloud/routemaster.PublicHostedZoneClient.Initializer.parameter.id"></a>
+
+- *Type:* string
+
+---
+
+##### `props`<sup>Required</sup> <a name="props" id="@catenarycloud/routemaster.PublicHostedZoneClient.Initializer.parameter.props"></a>
+
+- *Type:* <a href="#@catenarycloud/routemaster.PublicHostedZoneUtilsProps">PublicHostedZoneUtilsProps</a>
+
+---
+
+#### Methods <a name="Methods" id="Methods"></a>
+
+| **Name** | **Description** |
+| --- | --- |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.toString">toString</a></code> | Returns a string representation of this construct. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.crossAccountRoleArn">crossAccountRoleArn</a></code> | Returns the IAM role ARN for Route 53 cross-account access. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.processDomain">processDomain</a></code> | Helper method for a domain string to create IDs. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.resolveHostedZoneId">resolveHostedZoneId</a></code> | Creates and returns IStringParameter that contains zone id (param.stringvalue). |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.zoneAccount">zoneAccount</a></code> | Zone account id. |
+
+---
+
+##### `toString` <a name="toString" id="@catenarycloud/routemaster.PublicHostedZoneClient.toString"></a>
+
+```typescript
+public toString(): string
+```
+
+Returns a string representation of this construct.
+
+##### `crossAccountRoleArn` <a name="crossAccountRoleArn" id="@catenarycloud/routemaster.PublicHostedZoneClient.crossAccountRoleArn"></a>
+
+```typescript
+public crossAccountRoleArn(): string
+```
+
+Returns the IAM role ARN for Route 53 cross-account access.
+
+##### `processDomain` <a name="processDomain" id="@catenarycloud/routemaster.PublicHostedZoneClient.processDomain"></a>
+
+```typescript
+public processDomain(domain: string, tld?: boolean): string
+```
+
+Helper method for a domain string to create IDs.
+
+For a given domain name, if the optional parameter `tld` is false (default), the function returns
+a combined identifier constructed by joining any subdomains with dashes and appending the first segment
+of the root domain.
+
+For example, "a1.dev.acme.com" becomes "a1-dev-acme". If `tld` is true, the function
+returns the second-level TLD (e.g., "acme.com").
+
+###### `domain`<sup>Required</sup> <a name="domain" id="@catenarycloud/routemaster.PublicHostedZoneClient.processDomain.parameter.domain"></a>
+
+- *Type:* string
+
+The input domain string (e.g., "acme.com", "dev.acme.com").
+
+---
+
+###### `tld`<sup>Optional</sup> <a name="tld" id="@catenarycloud/routemaster.PublicHostedZoneClient.processDomain.parameter.tld"></a>
+
+- *Type:* boolean
+
+Optional flag;
+
+when true, returns the second-level TLD.
+
+---
+
+##### `resolveHostedZoneId` <a name="resolveHostedZoneId" id="@catenarycloud/routemaster.PublicHostedZoneClient.resolveHostedZoneId"></a>
+
+```typescript
+public resolveHostedZoneId(): IStringParameter
+```
+
+Creates and returns IStringParameter that contains zone id (param.stringvalue).
+
+##### `zoneAccount` <a name="zoneAccount" id="@catenarycloud/routemaster.PublicHostedZoneClient.zoneAccount"></a>
+
+```typescript
+public zoneAccount(): string
+```
+
+Zone account id.
+
+#### Static Functions <a name="Static Functions" id="Static Functions"></a>
+
+| **Name** | **Description** |
+| --- | --- |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.isConstruct">isConstruct</a></code> | Checks if `x` is a construct. |
+
+---
+
+##### ~~`isConstruct`~~ <a name="isConstruct" id="@catenarycloud/routemaster.PublicHostedZoneClient.isConstruct"></a>
+
+```typescript
+import { PublicHostedZoneClient } from '@catenarycloud/routemaster'
+
+PublicHostedZoneClient.isConstruct(x: any)
+```
+
+Checks if `x` is a construct.
+
+###### `x`<sup>Required</sup> <a name="x" id="@catenarycloud/routemaster.PublicHostedZoneClient.isConstruct.parameter.x"></a>
+
+- *Type:* any
+
+Any object.
+
+---
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
+
+---
+
+##### `node`<sup>Required</sup> <a name="node" id="@catenarycloud/routemaster.PublicHostedZoneClient.property.node"></a>
+
+```typescript
+public readonly node: Node;
+```
+
+- *Type:* constructs.Node
+
+The tree node.
+
+---
+
+
 ### PublicHostedZoneWithReusableDelegationSet <a name="PublicHostedZoneWithReusableDelegationSet" id="@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet"></a>
 
 Represents a public hosted zone associated with a reusable delegation set.
@@ -430,6 +592,59 @@ The tree node.
 ---
 
 
+## Structs <a name="Structs" id="Structs"></a>
+
+### PublicHostedZoneUtilsProps <a name="PublicHostedZoneUtilsProps" id="@catenarycloud/routemaster.PublicHostedZoneUtilsProps"></a>
+
+Interface for hosted zone utility configuration.
+
+#### Initializer <a name="Initializer" id="@catenarycloud/routemaster.PublicHostedZoneUtilsProps.Initializer"></a>
+
+```typescript
+import { PublicHostedZoneUtilsProps } from '@catenarycloud/routemaster'
+
+const publicHostedZoneUtilsProps: PublicHostedZoneUtilsProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneUtilsProps.property.accountId">accountId</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneUtilsProps.property.domain">domain</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneUtilsProps.property.region">region</a></code> | <code>string</code> | *No description.* |
+
+---
+
+##### `accountId`<sup>Required</sup> <a name="accountId" id="@catenarycloud/routemaster.PublicHostedZoneUtilsProps.property.accountId"></a>
+
+```typescript
+public readonly accountId: string;
+```
+
+- *Type:* string
+
+---
+
+##### `domain`<sup>Required</sup> <a name="domain" id="@catenarycloud/routemaster.PublicHostedZoneUtilsProps.property.domain"></a>
+
+```typescript
+public readonly domain: string;
+```
+
+- *Type:* string
+
+---
+
+##### `region`<sup>Required</sup> <a name="region" id="@catenarycloud/routemaster.PublicHostedZoneUtilsProps.property.region"></a>
+
+```typescript
+public readonly region: string;
+```
+
+- *Type:* string
+
+---
 
 
 ## Protocols <a name="Protocols" id="Protocols"></a>
