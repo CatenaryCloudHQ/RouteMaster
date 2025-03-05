@@ -10,11 +10,14 @@ With RouteMaster, there is no need for DNS legacy sharing method with delegation
 
 This is very scalable and cost-effective method to manage zones.
 
+![savings](./media/savings.png.jpg)
+Change in Route53 cost after zones consolidation with RouteMaster
+
 # How to use
 
 In the account with consolidated Route53:
 
-```
+```ts
 export class Route53Resources extends Stack {
   constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
@@ -75,15 +78,14 @@ export class Route53Resources extends Stack {
       (domain) => zoneCreator.updateDomainNS(domain)
     );
   }
-
 ```
 
 And in the app accounts:
 
-```
+```ts
 import { CrossAccountRoute53RecordSet } from "cdk-cross-account-route53";
 
-const domain = "acme.com"
+const domain = "acme.com";
 
 // Get helper instantiated
 const zoneHelper = new PublicHostedZoneClient(this, "helper", {
@@ -105,7 +107,7 @@ const zone = HostedZone.fromHostedZoneAttributes(this, "zone", {
 const validationRole: IRole = Role.fromRoleArn(
   this,
   "ValidationRole",
-  zoneHelper.crossAccountRoleArn()
+  zoneHelper.crossAccountRoleArn(),
 );
 
 // Create records, for example Google verification txt record
@@ -122,5 +124,4 @@ new CrossAccountRoute53RecordSet(this, "GoogleVerification", {
   hostedZoneId,
   resourceRecordSets: [record],
 });
-
 ```
