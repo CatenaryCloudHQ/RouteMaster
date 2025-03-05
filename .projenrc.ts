@@ -8,6 +8,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorAddress: "hi@catenary.cloud",
   packageName: "@catenarycloud/routemaster",
   cdkVersion: "2.173.2",
+  // constructsVersion: "10.4.2",
   majorVersion: 0,
   defaultReleaseBranch: "main",
   release: true,
@@ -30,7 +31,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
       nodeLinker: YarnNodeLinker.NODE_MODULES,
     },
   },
-
+  peerDeps: ["constructs@*"],
   deps: [
     "cdk-cross-account-route53@1.0.1",
     "@trautonen/cdk-dns-validated-certificate@0.1.12",
