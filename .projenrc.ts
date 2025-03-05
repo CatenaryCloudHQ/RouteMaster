@@ -31,7 +31,6 @@ const project = new awscdk.AwsCdkConstructLibrary({
       nodeLinker: YarnNodeLinker.NODE_MODULES,
     },
   },
-  peerDeps: ["constructs@*"],
   deps: [
     "cdk-cross-account-route53@1.0.1",
     "@trautonen/cdk-dns-validated-certificate@0.1.12",

@@ -47,7 +47,7 @@ new PublicHostedZoneClient(scope: Construct, id: string, props: PublicHostedZone
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.toString">toString</a></code> | Returns a string representation of this construct. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.crossAccountRoleArn">crossAccountRoleArn</a></code> | Returns the IAM role ARN for Route 53 cross-account access. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.processDomain">processDomain</a></code> | Helper method for a domain string to create IDs. |
-| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.resolveHostedZoneId">resolveHostedZoneId</a></code> | Resolves the hosted zone ID from SSM. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.resolveHostedZoneId">resolveHostedZoneId</a></code> | Creates and returns IStringParameter that contains zone id (param.stringvalue). |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.zoneAccount">zoneAccount</a></code> | Zone account id. |
 
 ---
@@ -107,7 +107,7 @@ when true, returns the second-level TLD.
 public resolveHostedZoneId(): IStringParameter
 ```
 
-Resolves the hosted zone ID from SSM.
+Creates and returns IStringParameter that contains zone id (param.stringvalue).
 
 ##### `zoneAccount` <a name="zoneAccount" id="@catenarycloud/routemaster.PublicHostedZoneClient.zoneAccount"></a>
 
