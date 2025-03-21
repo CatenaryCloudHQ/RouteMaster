@@ -1,8 +1,10 @@
 import { CustomResource, Duration, Names } from "aws-cdk-lib";
 import {
   ArnPrincipal,
+  Policy,
   PolicyStatement,
   PrincipalWithConditions,
+  Role,
 } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -16,7 +18,6 @@ import {
   PhysicalResourceIdReference,
   Provider,
 } from "aws-cdk-lib/custom-resources";
-import { CrossAccountRoute53Role } from "cdk-cross-account-route53";
 import { Construct } from "constructs";
 import { PublicHostedZoneClient } from "./publicHostedZoneClient";
 import { ReusableDelegationSet } from "./reusableSet";
@@ -57,6 +58,7 @@ export interface IPublicHostedZoneWithIReusableDelegationSetProps {
  */
 export class PublicHostedZoneWithReusableDelegationSet extends Construct {
   private publicHostedZoneResources: Record<string, AwsCustomResource> = {};
+  private publicHostedZones: Record<string, IHostedZone> = {};
   private zoneIdParameters: Record<string, StringParameter> = {};
   private domains: string[] = [];
   private zoneGetterProvider: Provider;
@@ -76,11 +78,13 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
   ) {
     super(scope, id);
     this.props = props;
+
     this.zoneHelper = new PublicHostedZoneClient(scope, "test", {
       accountId: "",
       domain: "",
       region: "",
     });
+
     const zoneGetterLambda = new NodejsFunction(this, "zone", {
       runtime: Runtime.NODEJS_20_X,
       handler: "handler",
@@ -110,7 +114,7 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
    */
   addZone(zoneName: string): void {
     if (this.domains.includes(zoneName)) {
-      throw new Error(`Zone ${zoneName} already added.`);
+      throw new Error(`Zone ${zoneName} already provisioned.`);
     }
 
     this.domains.push(zoneName);
@@ -187,6 +191,7 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
 
   /**
    * Shares the hosted zone with AWS Resource Access Manager (RAM)
+   * Adds zone into this.publicHostedZones record set with domain name as record id
    *
    * @param domain The domain name of the zone.
    * @param orgOUIds The list of organizational unit IDs to share with.
@@ -199,7 +204,9 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
     allowExternal: boolean = false,
   ): void {
     if (!this.publicHostedZoneResources[domain]) {
-      throw new Error(`Zone ${domain} must be added before sharing.`);
+      throw new Error(
+        `Zone ${domain} must be added before sharing. Use addZone method`,
+      );
     }
 
     const zone = new CustomResource(this, `zid${domain}`, {
@@ -211,7 +218,14 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
     });
 
     const zoneId = zone.getAttString("zoneId");
+    const importedZone: IHostedZone = HostedZone.fromHostedZoneId(
+      this,
+      `zone${domain}`,
+      zoneId,
+    );
+    this.publicHostedZones[domain] = importedZone;
 
+    // This creates domain:zoneId map
     const zoneIdParameter = new StringParameter(this, `${domain}Param`, {
       parameterName: `/shared/${domain}/zone-id`,
       stringValue: zoneId,
@@ -241,36 +255,76 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
    * @param domain The domain name of the hosted zone.
    * @throws If the zone is not shared before creating the role.
    */
-  createRoute53Role(ou: string, zoneName: string, domain: string): void {
-    const tld = this.zoneHelper.processDomain(domain, true);
+  createRoute53Role(OUs: string[], domains: string[]): void {
+    // Determine if role should enable access to multiple zones (domains) and use it as suffix
+    let multiZoneSuffix: string = domains.length > 1 ? "MultiZone" : "";
 
-    if (!this.zoneIdParameters[tld]) {
-      throw new Error(`Zone ${domain} must be shared before creating a role.`);
-    }
+    // Prefix to name role and policy
+    const firstDomain = domains[0];
+    const domainZoneArns: string[] = [];
+    const ouPaths: string[] = [];
 
-    const zone: IHostedZone = HostedZone.fromHostedZoneId(
+    OUs.forEach((o: string) => {
+      ouPaths.push(
+        `${this.props.orgId}/r-${this.props.orgRootId}/ou-${this.props.orgRootId}-${o}/`,
+      );
+    });
+
+    // Get all record types Route53 has to set it in the permissions
+    const recordTypes = Object.values(
+      RecordType,
+    ) as (keyof typeof RecordType)[];
+
+    // Check if zone for domain exist and if zone for the domain was shared in RAM
+    domains.forEach((d: string) => {
+      domainZoneArns.push(this.publicHostedZones[d].hostedZoneArn);
+      const tld = this.zoneHelper.processDomain(d, true);
+      if (!this.zoneIdParameters[tld] || !this.publicHostedZones[d]) {
+        throw new Error(
+          `Zone ${d} must be shared with RAM before we can create a role for. Use shareZoneWithRAM method.`,
+        );
+      }
+    });
+
+    // Custom policy that allows access to the zone(s)
+    const policy = new Policy(
       this,
-      `import${zoneName}`,
-      this.zoneIdParameters[tld].stringValue,
+      `Route53Role${firstDomain}${multiZoneSuffix}`,
+      {
+        statements: [
+          new PolicyStatement({
+            actions: ["route53:ChangeResourceRecordSets"],
+            resources: domainZoneArns,
+            conditions: {
+              "ForAllValues:StringEquals": {
+                "route53:ChangeResourceRecordSetsRecordTypes": recordTypes,
+                "route53:ChangeResourceRecordSetsActions": [
+                  "CREATE",
+                  "UPSERT",
+                  "DELETE",
+                ],
+              },
+              "ForAllValues:StringLike": {
+                "route53:ChangeResourceRecordSetsNormalizedRecordNames":
+                  domains,
+              },
+            },
+          }),
+        ],
+      },
     );
 
-    new CrossAccountRoute53Role(this, `Route53Role${zoneName}`, {
-      roleName: `Route53Role${zoneName}`,
+    // Role with custom, predefined name
+    const r = new Role(this, `Route53Role${firstDomain}${multiZoneSuffix}`, {
+      roleName: `Route53Role${firstDomain}${multiZoneSuffix}`,
+
       assumedBy: new PrincipalWithConditions(new ArnPrincipal("*"), {
         "ForAnyValue:StringLike": {
-          "aws:PrincipalOrgPaths": [
-            `${this.props.orgId}/r-${this.props.orgRootId}/ou-${this.props.orgRootId}-${ou}/`,
-          ],
+          "aws:PrincipalOrgPaths": [ouPaths],
         },
       }),
-      zone: zone,
-      records: [
-        {
-          domainNames: [`*.${domain}`, `${domain}`],
-          types: Object.values(RecordType) as (keyof typeof RecordType)[],
-        },
-      ],
-      normaliseDomains: false,
     });
+
+    policy.attachToRole(r);
   }
 }

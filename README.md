@@ -62,13 +62,13 @@ export class Route53Resources extends Stack {
 
     // Create IAM roles for the OUs which they will use to update records in specific zones
     zones.forEach((tldZones) =>
-      zoneCreator.createRoute53Role("shf24sfws", zone.name, zone.domain)
+      zoneCreator.createRoute53Role(["shf24sfws"], [zone.domain])
     );
 
     // Note that for dev domains there is no need to create new zones
     // The dev records gets updated in respective TLD zone, but security with own IAM role shared to specific UOs
     devZones.forEach((zone) =>
-      zoneCreator.createRoute53Role("x81hd0je", zone.name, zone.domain)
+      zoneCreator.createRoute53Role(["x81hd0je"], [zone.domain])
     );
 
     // Finally, after zone setup is ready - update name servers in Route53 registrar
