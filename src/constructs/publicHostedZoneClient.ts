@@ -15,10 +15,12 @@ export interface PublicHostedZoneUtilsProps {
  */
 export class PublicHostedZoneClient extends Construct {
   private readonly props: PublicHostedZoneUtilsProps;
+  private readonly multiZoneSuffix: string;
 
   constructor(scope: Construct, id: string, props: PublicHostedZoneUtilsProps) {
     super(scope, id);
     this.props = props;
+    this.multiZoneSuffix = "MtplZn";
   }
 
   /**
@@ -34,47 +36,64 @@ export class PublicHostedZoneClient extends Construct {
    * @returns IStringParameter
    */
   resolveHostedZoneId(): IStringParameter {
-    const domainId = this.processDomain(this.props.domain, true);
+    const domainId = this.extractTld(this.props.domain);
     const parameterArn = `arn:aws:ssm:${this.props.region}:${this.props.accountId}:parameter/shared/${domainId}/zone-id`;
 
     return StringParameter.fromStringParameterArn(this, "zone", parameterArn);
   }
 
   /**
-   * Returns the IAM role ARN for Route 53 cross-account access.
+   * Returns the IAM role ARN for Route 53 cross-account access
+   *
+   * Optional switch to use multi zone suffix - the client must be aware if domain shared created as a "set"
    * @returns IAM role ARN as a string.
    */
-  crossAccountRoleArn(): string {
-    const subDomainId = this.processDomain(this.props.domain);
-    return `arn:aws:iam::${this.props.accountId}:role/Route53Role${subDomainId}`;
+  crossAccountRoleArn(multiZone?: boolean): string {
+    const subDomainId = this.extractNamespaceDomain(this.props.domain);
+    const multiZoneSuffix = multiZone ? `-${this.multiZoneSuffix}` : "";
+    return `arn:aws:iam::${this.props.accountId}:role/Route53Role-${subDomainId}${multiZoneSuffix}`;
   }
 
   /**
-   * Helper method for a domain string to create IDs.
-   *
-   * For a given domain name, if the optional parameter `tld` is false (default), the function returns
-   * a combined identifier constructed by joining any subdomains with dashes and appending the first segment
-   * of the root domain.
-   *
-   * For example, "a1.dev.acme.com" becomes "a1-dev-acme". If `tld` is true, the function
-   * returns the second-level TLD (e.g., "acme.com").
-   *
-   * @param domain - The input domain string (e.g., "acme.com", "dev.acme.com").
-   * @param tld - Optional flag; when true, returns the second-level TLD.
-   * @returns The processed domain identifier or the second-level TLD.
+   * Normalizes a domain string for use in Route53 condition keys.
+   * Converts to lowercase, removes trailing dot, and escapes all non-[a–z0–9_.-] characters
+   * using AWS octal format (e.g. "*" → "\052").
+   * Example: "*-Dev.Acme.com." → "\052-dev.acme.com"
    */
-  public processDomain(domain: string, tld: boolean = false): string {
-    const parts = domain.split(".");
-    if (parts.length < 2) return "";
+  public normalizeDomain(input: string): string {
+    const trimmed = input.replace(/\.$/, "").toLowerCase();
 
-    const rootDomain = parts.slice(-2).join(".");
-    if (tld) return rootDomain;
+    return trimmed
+      .split("")
+      .map((char) =>
+        /[a-z0-9_.-]/.test(char)
+          ? char
+          : `\\${`000${char.charCodeAt(0).toString(8)}`.slice(-3)}`,
+      )
+      .join("");
+  }
 
-    const subdomains = parts.slice(0, -2);
-    const identifier = subdomains.length > 0 ? subdomains.join("-") : "";
+  /**
+   * Extracts the second-level domain (zone identifier) from a full domain name.
+   * Throws if input is not a valid domain with at least two segments.
+   * Example: "a.b.c.dev.acme.com" → "acme.com"
+   */
+  public extractTld(input: string): string {
+    const parts = input.split(".");
+    if (parts.length < 2) {
+      throw new Error(
+        `extractTld: input does not contain a valid TLD → "${input}"`,
+      );
+    }
+    return parts.slice(-2).join(".");
+  }
 
-    return identifier
-      ? `${identifier}-${rootDomain.split(".")[0]}`
-      : rootDomain.split(".")[0];
+  /**
+   * Strips leading non-domain characters and returns the cleaned domain.
+   * If subdomains exist, returns full domain after prefix removal.
+   * Example: "!test.env.acme.com" → "test.env.acme.com"
+   */
+  public extractNamespaceDomain(input: string): string {
+    return input.replace(/^[^a-z0-9]+/i, "");
   }
 }

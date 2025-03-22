@@ -33,6 +33,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     },
   },
   deps: [],
+  devDeps: ["esbuild"],
   bundledDeps: ["@aws-sdk/client-route-53", "@types/aws-lambda"],
 });
 

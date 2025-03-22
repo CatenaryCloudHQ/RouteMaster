@@ -99,6 +99,7 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
       bundling: {
         externalModules: ["@aws-sdk/client-route53"],
         sourceMap: true,
+        forceDockerBundling: false,
       },
     });
 
@@ -223,6 +224,7 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
       `zone${domain}`,
       zoneId,
     );
+
     this.publicHostedZones[domain] = importedZone;
 
     // This creates domain:zoneId map
@@ -248,22 +250,30 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
     });
   }
 
+  // *.dev.acme.com, *-dev.acme.com
+  // Role name: dev.acme.com - acting kinda like namespace reservation
+  // Zone: acme.com
+
   /**
-   * Creates a cross-account Route 53 role for a specific hosted zone.
-   * @param ou The organizational unit to assign the role to.
-   * @param zoneName The name of the hosted zone.
-   * @param domain The domain name of the hosted zone.
-   * @throws If the zone is not shared before creating the role.
+   * Creates a cross-account Route 53 role for a specific hosted zone with custom name with optional suffix: R53-acme.com-[Multizone]
+   *
+   * Method adds suffix when there are multiple domains
+   *
+   * @param OUs A list of organizational unit to allow Role be assumed from
+   * @param domains A list of domain names the role gets created for
+   * @throws If zone for any domain was not shared before creating the role
    */
   createRoute53Role(OUs: string[], domains: string[]): void {
     // Determine if role should enable access to multiple zones (domains) and use it as suffix
-    let multiZoneSuffix: string = domains.length > 1 ? "MultiZone" : "";
+    let multiZoneSuffix: string = domains.length > 1 ? "MtplZn" : "";
 
     // Prefix to name role and policy
-    const firstDomain = domains[0];
+    const firstDomain = this.zoneHelper.extractNamespaceDomain(domains[0]);
     const domainZoneArns: string[] = [];
     const ouPaths: string[] = [];
+    const normalizedDomains: string[] = [];
 
+    // Prepare OUs list
     OUs.forEach((o: string) => {
       ouPaths.push(
         `${this.props.orgId}/r-${this.props.orgRootId}/ou-${this.props.orgRootId}-${o}/`,
@@ -277,9 +287,12 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
 
     // Check if zone for domain exist and if zone for the domain was shared in RAM
     domains.forEach((d: string) => {
-      domainZoneArns.push(this.publicHostedZones[d].hostedZoneArn);
-      const tld = this.zoneHelper.processDomain(d, true);
-      if (!this.zoneIdParameters[tld] || !this.publicHostedZones[d]) {
+      normalizedDomains.push(this.zoneHelper.normalizeDomain(d));
+
+      const tld = this.zoneHelper.extractTld(d);
+      domainZoneArns.push(this.publicHostedZones[tld].hostedZoneArn);
+
+      if (!this.zoneIdParameters[tld]) {
         throw new Error(
           `Zone ${d} must be shared with RAM before we can create a role for. Use shareZoneWithRAM method.`,
         );
@@ -289,7 +302,7 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
     // Custom policy that allows access to the zone(s)
     const policy = new Policy(
       this,
-      `Route53Role${firstDomain}${multiZoneSuffix}`,
+      `R53Policy-${firstDomain}-${multiZoneSuffix}`,
       {
         statements: [
           new PolicyStatement({
@@ -306,7 +319,7 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
               },
               "ForAllValues:StringLike": {
                 "route53:ChangeResourceRecordSetsNormalizedRecordNames":
-                  domains,
+                  normalizedDomains.map((d) => (d === "*" ? "\\052" : d)),
               },
             },
           }),
@@ -314,13 +327,11 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
       },
     );
 
-    // Role with custom, predefined name
     const r = new Role(this, `Route53Role${firstDomain}${multiZoneSuffix}`, {
-      roleName: `Route53Role${firstDomain}${multiZoneSuffix}`,
-
+      roleName: `R53-${firstDomain}-${multiZoneSuffix}`,
       assumedBy: new PrincipalWithConditions(new ArnPrincipal("*"), {
         "ForAnyValue:StringLike": {
-          "aws:PrincipalOrgPaths": [ouPaths],
+          "aws:PrincipalOrgPaths": ouPaths,
         },
       }),
     });

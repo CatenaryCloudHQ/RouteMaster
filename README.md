@@ -74,7 +74,7 @@ export class Route53Resources extends Stack {
     // Finally, after zone setup is ready - update name servers in Route53 registrar
     // Important! This will switch zones for the registered domains!
     // If you had zones provisioned in Route53, then make sure you migrated all records to zones managed with RouteMaster constructs.
-    ["naumenko.ca", "acme.com", "acme.ai"].forEach(
+    ["acme.com", "acme.ai"].forEach(
       (domain) => zoneCreator.updateDomainNS(domain)
     );
   }
