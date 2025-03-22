@@ -13,7 +13,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   defaultReleaseBranch: "main",
   release: true,
   releaseTrigger: ReleaseTrigger.continuous(),
-  prerelease: "beta",
+  // prerelease: "beta",
   prettier: true,
   jsiiVersion: "~5.7.0",
   name: "RouteMaster",
