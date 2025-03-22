@@ -1,4 +1,4 @@
-import { awscdk, javascript, JsonPatch } from "projen";
+import { awscdk, javascript, JsonPatch, ReleasableCommits } from "projen";
 import { JobStep } from "projen/lib/github/workflows-model";
 import { YarnNodeLinker } from "projen/lib/javascript";
 import { ReleaseTrigger } from "projen/lib/release";
@@ -23,6 +23,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   packageManager: javascript.NodePackageManager.YARN_BERRY,
   projenrcTs: true,
   license: "Apache-2.0",
+  releasableCommits: ReleasableCommits.featuresAndFixes(),
   repositoryUrl: "https://github.com/CatenaryCloudHQ/RouteMaster.git",
   yarnBerryOptions: {
     version: "4.6.0",
@@ -31,12 +32,9 @@ const project = new awscdk.AwsCdkConstructLibrary({
       nodeLinker: YarnNodeLinker.NODE_MODULES,
     },
   },
-  deps: [
-    "cdk-cross-account-route53@1.0.1",
-    "@trautonen/cdk-dns-validated-certificate@0.1.12",
-  ],
+  deps: [],
+  devDeps: ["esbuild"],
   bundledDeps: ["@aws-sdk/client-route-53", "@types/aws-lambda"],
-  // devDeps: [] /* Build dependencies for this module. */,
 });
 
 const res = project.github?.tryFindWorkflow("release");
@@ -84,5 +82,8 @@ if (project.github) {
     }
   }
 }
+
+// Add some extras to npmignore
+project.npmignore?.addPatterns(".yarn", ".yarn*");
 
 project.synth();

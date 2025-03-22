@@ -42,6 +42,7 @@
     "aws-cdk-lib": "2.173.2",
     "commit-and-tag-version": "^12",
     "constructs": "10.0.5",
+    "esbuild": "^0.25.1",
     "eslint": "^9",
     "eslint-config-prettier": "^10.0.2",
     "eslint-import-resolver-typescript": "^3.8.3",
@@ -66,9 +67,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-route-53": "^3.758.0",
-    "@trautonen/cdk-dns-validated-certificate": "0.1.12",
-    "@types/aws-lambda": "^8.10.147",
-    "cdk-cross-account-route53": "1.0.1"
+    "@types/aws-lambda": "^8.10.147"
   },
   "bundledDependencies": [
     "@aws-sdk/client-route-53",

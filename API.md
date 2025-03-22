@@ -46,7 +46,9 @@ new PublicHostedZoneClient(scope: Construct, id: string, props: PublicHostedZone
 | --- | --- |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.toString">toString</a></code> | Returns a string representation of this construct. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.crossAccountRoleArn">crossAccountRoleArn</a></code> | Returns the IAM role ARN for Route 53 cross-account access. |
-| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.processDomain">processDomain</a></code> | Helper method for a domain string to create IDs. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.extractNamespaceDomain">extractNamespaceDomain</a></code> | Strips leading non-domain characters and returns the cleaned domain. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.extractTld">extractTld</a></code> | Extracts the second-level domain (zone identifier) from a full domain name. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.normalizeDomain">normalizeDomain</a></code> | Normalizes a domain string for use in Route53 condition keys. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.resolveHostedZoneId">resolveHostedZoneId</a></code> | Creates and returns IStringParameter that contains zone id (param.stringvalue). |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.zoneAccount">zoneAccount</a></code> | Zone account id. |
 
@@ -63,41 +65,68 @@ Returns a string representation of this construct.
 ##### `crossAccountRoleArn` <a name="crossAccountRoleArn" id="@catenarycloud/routemaster.PublicHostedZoneClient.crossAccountRoleArn"></a>
 
 ```typescript
-public crossAccountRoleArn(): string
+public crossAccountRoleArn(multiZone?: boolean): string
 ```
 
 Returns the IAM role ARN for Route 53 cross-account access.
 
-##### `processDomain` <a name="processDomain" id="@catenarycloud/routemaster.PublicHostedZoneClient.processDomain"></a>
+Optional switch to use multi zone suffix - the client must be aware if domain shared created as a "set"
 
-```typescript
-public processDomain(domain: string, tld?: boolean): string
-```
-
-Helper method for a domain string to create IDs.
-
-For a given domain name, if the optional parameter `tld` is false (default), the function returns
-a combined identifier constructed by joining any subdomains with dashes and appending the first segment
-of the root domain.
-
-For example, "a1.dev.acme.com" becomes "a1-dev-acme". If `tld` is true, the function
-returns the second-level TLD (e.g., "acme.com").
-
-###### `domain`<sup>Required</sup> <a name="domain" id="@catenarycloud/routemaster.PublicHostedZoneClient.processDomain.parameter.domain"></a>
-
-- *Type:* string
-
-The input domain string (e.g., "acme.com", "dev.acme.com").
-
----
-
-###### `tld`<sup>Optional</sup> <a name="tld" id="@catenarycloud/routemaster.PublicHostedZoneClient.processDomain.parameter.tld"></a>
+###### `multiZone`<sup>Optional</sup> <a name="multiZone" id="@catenarycloud/routemaster.PublicHostedZoneClient.crossAccountRoleArn.parameter.multiZone"></a>
 
 - *Type:* boolean
 
-Optional flag;
+---
 
-when true, returns the second-level TLD.
+##### `extractNamespaceDomain` <a name="extractNamespaceDomain" id="@catenarycloud/routemaster.PublicHostedZoneClient.extractNamespaceDomain"></a>
+
+```typescript
+public extractNamespaceDomain(input: string): string
+```
+
+Strips leading non-domain characters and returns the cleaned domain.
+
+If subdomains exist, returns full domain after prefix removal.
+Example: "!test.env.acme.com" → "test.env.acme.com"
+
+###### `input`<sup>Required</sup> <a name="input" id="@catenarycloud/routemaster.PublicHostedZoneClient.extractNamespaceDomain.parameter.input"></a>
+
+- *Type:* string
+
+---
+
+##### `extractTld` <a name="extractTld" id="@catenarycloud/routemaster.PublicHostedZoneClient.extractTld"></a>
+
+```typescript
+public extractTld(input: string): string
+```
+
+Extracts the second-level domain (zone identifier) from a full domain name.
+
+Throws if input is not a valid domain with at least two segments.
+Example: "a.b.c.dev.acme.com" → "acme.com"
+
+###### `input`<sup>Required</sup> <a name="input" id="@catenarycloud/routemaster.PublicHostedZoneClient.extractTld.parameter.input"></a>
+
+- *Type:* string
+
+---
+
+##### `normalizeDomain` <a name="normalizeDomain" id="@catenarycloud/routemaster.PublicHostedZoneClient.normalizeDomain"></a>
+
+```typescript
+public normalizeDomain(input: string): string
+```
+
+Normalizes a domain string for use in Route53 condition keys.
+
+Converts to lowercase, removes trailing dot, and escapes all non-[a–z0–9_.-] characters
+using AWS octal format (e.g. "*" → "\052").
+Example: "*-Dev.Acme.com." → "\052-dev.acme.com"
+
+###### `input`<sup>Required</sup> <a name="input" id="@catenarycloud/routemaster.PublicHostedZoneClient.normalizeDomain.parameter.input"></a>
+
+- *Type:* string
 
 ---
 
@@ -216,8 +245,8 @@ Properties for configuring the reusable delegation set and organization.
 | --- | --- |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.toString">toString</a></code> | Returns a string representation of this construct. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.addZone">addZone</a></code> | Adds a new public hosted zone. |
-| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.createRoute53Role">createRoute53Role</a></code> | Creates a cross-account Route 53 role for a specific hosted zone. |
-| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.shareZoneWithRAM">shareZoneWithRAM</a></code> | Shares the hosted zone with AWS Resource Access Manager (RAM). |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.createRoute53Role">createRoute53Role</a></code> | Creates a cross-account Route 53 role for a specific hosted zone with custom name with optional suffix: R53-acme.com-[Multizone]. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.shareZoneWithRAM">shareZoneWithRAM</a></code> | Shares the hosted zone with AWS Resource Access Manager (RAM) Adds zone into this.publicHostedZones record set with domain name as record id. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.updateDomainNS">updateDomainNS</a></code> | Updates the name servers for a given domain. |
 
 ---
@@ -249,32 +278,26 @@ The domain name for the hosted zone.
 ##### `createRoute53Role` <a name="createRoute53Role" id="@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.createRoute53Role"></a>
 
 ```typescript
-public createRoute53Role(ou: string, zoneName: string, domain: string): void
+public createRoute53Role(OUs: string[], domains: string[]): void
 ```
 
-Creates a cross-account Route 53 role for a specific hosted zone.
+Creates a cross-account Route 53 role for a specific hosted zone with custom name with optional suffix: R53-acme.com-[Multizone].
 
-###### `ou`<sup>Required</sup> <a name="ou" id="@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.createRoute53Role.parameter.ou"></a>
+Method adds suffix when there are multiple domains
 
-- *Type:* string
+###### `OUs`<sup>Required</sup> <a name="OUs" id="@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.createRoute53Role.parameter.OUs"></a>
 
-The organizational unit to assign the role to.
+- *Type:* string[]
 
----
-
-###### `zoneName`<sup>Required</sup> <a name="zoneName" id="@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.createRoute53Role.parameter.zoneName"></a>
-
-- *Type:* string
-
-The name of the hosted zone.
+A list of organizational unit to allow Role be assumed from.
 
 ---
 
-###### `domain`<sup>Required</sup> <a name="domain" id="@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.createRoute53Role.parameter.domain"></a>
+###### `domains`<sup>Required</sup> <a name="domains" id="@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.createRoute53Role.parameter.domains"></a>
 
-- *Type:* string
+- *Type:* string[]
 
-The domain name of the hosted zone.
+A list of domain names the role gets created for.
 
 ---
 
@@ -284,7 +307,7 @@ The domain name of the hosted zone.
 public shareZoneWithRAM(domain: string, orgOUIds: string[], allowExternal?: boolean): void
 ```
 
-Shares the hosted zone with AWS Resource Access Manager (RAM).
+Shares the hosted zone with AWS Resource Access Manager (RAM) Adds zone into this.publicHostedZones record set with domain name as record id.
 
 ###### `domain`<sup>Required</sup> <a name="domain" id="@catenarycloud/routemaster.PublicHostedZoneWithReusableDelegationSet.shareZoneWithRAM.parameter.domain"></a>
 

@@ -25,29 +25,63 @@ describe("PublicHostedZoneClient", () => {
     client = new PublicHostedZoneClient(stack, "TestClient", props);
   });
 
-  describe("processDomain", () => {
-    test("returns empty string for invalid domain", () => {
-      expect(client.processDomain("localhost")).toBe("");
+  describe("normalizeDomain", () => {
+    test("normalizes mixed case and trailing dot", () => {
+      expect(client.normalizeDomain("Dev.Acme.com.")).toBe("dev.acme.com");
     });
 
-    test("returns only root domain if no subdomain is present", () => {
-      expect(client.processDomain(tldDomain)).toBe("acme");
+    test("escapes invalid characters", () => {
+      expect(client.normalizeDomain("*.acme.com")).toBe("\\052.acme.com");
+      expect(client.normalizeDomain("*-Dev.Acme.com.")).toBe(
+        "\\052-dev.acme.com",
+      );
     });
 
-    test("returns combined identifier if subdomain is present", () => {
-      expect(client.processDomain(domain)).toBe("dev-acme");
+    test("preserves valid characters", () => {
+      expect(client.normalizeDomain("api_1.dev-acme.com")).toBe(
+        "api_1.dev-acme.com",
+      );
+    });
+  });
+
+  describe("extractNamespaceDomain", () => {
+    test("removes leading wildcard", () => {
+      expect(client.extractNamespaceDomain("*.dev.acme.com")).toBe(
+        "dev.acme.com",
+      );
     });
 
-    test("returns second-level TLD if tld is true", () => {
-      expect(client.processDomain(domain, true)).toBe("acme.com");
+    test("removes leading non-domain characters", () => {
+      expect(client.extractNamespaceDomain("*-dev.acme.com")).toBe(
+        "dev.acme.com",
+      );
+      expect(client.extractNamespaceDomain("!test.env.acme.com")).toBe(
+        "test.env.acme.com",
+      );
     });
 
-    test("handles multiple subdomains", () => {
-      expect(client.processDomain(`a1.${domain}`)).toBe("a1-dev-acme");
+    test("returns root domain when no subdomain present", () => {
+      expect(client.extractNamespaceDomain("acme.com")).toBe("acme.com");
     });
 
-    test("handles multiple subdomains with tld true", () => {
-      expect(client.processDomain(`a1.${domain}`, true)).toBe("acme.com");
+    test("returns single-segment domain unchanged", () => {
+      expect(client.extractNamespaceDomain("localhost")).toBe("localhost");
+    });
+  });
+
+  describe("extractTld", () => {
+    test("extracts second-level domain from valid input", () => {
+      expect(client.extractTld("a.b.dev.acme.com")).toBe("acme.com");
+    });
+
+    test("extracts TLD from simple domain", () => {
+      expect(client.extractTld("foo.bar")).toBe("foo.bar");
+    });
+
+    test("throws on invalid input with no dot", () => {
+      expect(() => client.extractTld("localhost")).toThrow(
+        'extractTld: input does not contain a valid TLD → "localhost"',
+      );
     });
   });
 
@@ -85,7 +119,10 @@ describe("PublicHostedZoneClient", () => {
   describe("rossAccountRoleArn test", () => {
     test("constructs correct IAM role ARN", () => {
       expect(client.crossAccountRoleArn()).toBe(
-        `arn:aws:iam::${accountId}:role/Route53Roledev-acme`,
+        `arn:aws:iam::${accountId}:role/Route53Role-dev.acme.com`,
+      );
+      expect(client.crossAccountRoleArn(true)).toBe(
+        `arn:aws:iam::${accountId}:role/Route53Role-dev.acme.com-MtplZn`,
       );
     });
 
@@ -96,7 +133,7 @@ describe("PublicHostedZoneClient", () => {
       });
 
       expect(differentClient.crossAccountRoleArn()).toBe(
-        `arn:aws:iam::${accountId}:role/Route53Roletest-example`,
+        `arn:aws:iam::${accountId}:role/Route53Role-test.example.com`,
       );
     });
   });
