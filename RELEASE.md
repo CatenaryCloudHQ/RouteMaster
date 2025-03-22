@@ -14,4 +14,6 @@ can be installed locally with `yarn add ../../cdk-constructs/RouteMaster/dist/js
 
 `npx standard-version --commit-all --skip.bump --skip.tag --release-as 0.0.2-beta.1 --prerelease --verbose --dry-run`
 
-push branch and it will create release automatically for
+push branch and it will create release automatically
+
+5. Use feat, fix or chore as prefix in the PRs
