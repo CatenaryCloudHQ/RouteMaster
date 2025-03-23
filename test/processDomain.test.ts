@@ -119,10 +119,10 @@ describe("PublicHostedZoneClient", () => {
   describe("rossAccountRoleArn test", () => {
     test("constructs correct IAM role ARN", () => {
       expect(client.crossAccountRoleArn()).toBe(
-        `arn:aws:iam::${accountId}:role/Route53Role-dev.acme.com`,
+        `arn:aws:iam::${accountId}:role/R53-dev.acme.com`,
       );
       expect(client.crossAccountRoleArn(true)).toBe(
-        `arn:aws:iam::${accountId}:role/Route53Role-dev.acme.com-MtplZn`,
+        `arn:aws:iam::${accountId}:role/R53-dev.acme.com-MtplZn`,
       );
     });
 
@@ -133,7 +133,7 @@ describe("PublicHostedZoneClient", () => {
       });
 
       expect(differentClient.crossAccountRoleArn()).toBe(
-        `arn:aws:iam::${accountId}:role/Route53Role-test.example.com`,
+        `arn:aws:iam::${accountId}:role/R53-test.example.com`,
       );
     });
   });
