@@ -51,7 +51,7 @@ export class PublicHostedZoneClient extends Construct {
   crossAccountRoleArn(multiZone?: boolean): string {
     const subDomainId = this.extractNamespaceDomain(this.props.domain);
     const multiZoneSuffix = multiZone ? `-${this.multiZoneSuffix}` : "";
-    return `arn:aws:iam::${this.props.accountId}:role/Route53Role-${subDomainId}${multiZoneSuffix}`;
+    return `arn:aws:iam::${this.props.accountId}:role/R53-${subDomainId}${multiZoneSuffix}`;
   }
 
   /**
