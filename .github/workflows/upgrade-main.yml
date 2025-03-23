@@ -14,6 +14,8 @@ jobs:
     outputs:
       patch_created: ${{ steps.create_patch.outputs.patch_created }}
     steps:
+      - name: Install Specific Yarn Version
+        run: corepack enable && yarn set version 4.6.0
       - name: Checkout
         uses: actions/checkout@v4
         with:
