@@ -265,7 +265,7 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
    */
   createRoute53Role(OUs: string[], domains: string[]): void {
     // Determine if role should enable access to multiple zones (domains) and use it as suffix
-    let multiZoneSuffix: string = domains.length > 1 ? "MtplZn" : "";
+    let multiZoneSuffix: string = domains.length > 1 ? "-MtplZn" : "";
 
     // Prefix to name role and policy
     const firstDomain = this.zoneHelper.extractNamespaceDomain(domains[0]);
@@ -328,7 +328,7 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
     );
 
     const r = new Role(this, `Route53Role${firstDomain}${multiZoneSuffix}`, {
-      roleName: `R53-${firstDomain}-${multiZoneSuffix}`,
+      roleName: `R53-${firstDomain}${multiZoneSuffix}`,
       assumedBy: new PrincipalWithConditions(new ArnPrincipal("*"), {
         "ForAnyValue:StringLike": {
           "aws:PrincipalOrgPaths": ouPaths,

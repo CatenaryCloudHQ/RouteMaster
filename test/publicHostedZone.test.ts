@@ -120,7 +120,7 @@ describe("PublicHostedZoneWithReusableDelegationSet", () => {
     template.resourceCountIs("AWS::IAM::Policy", 5);
 
     template.hasResourceProperties("AWS::IAM::Role", {
-      RoleName: "R53-example.com-",
+      RoleName: "R53-example.com",
       AssumeRolePolicyDocument: {
         Statement: Match.arrayWith([
           Match.objectLike({

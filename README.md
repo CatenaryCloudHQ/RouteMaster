@@ -86,27 +86,29 @@ And in the app accounts:
 import { CrossAccountRoute53RecordSet } from "cdk-cross-account-route53";
 
 const domain = "acme.com";
+const dnsAccount = "243332259153";
 
 // Get helper instantiated
 const zoneHelper = new PublicHostedZoneClient(this, "helper", {
-  accountId: "243332259153",
+  accountId: dnsAccount,
   domain: domain,
   region: "us-east-1",
 });
 
-// To updated records, it requires three components
-// IHostedZone imported with `fromHostedZoneAttributes`
-// IAM role to make changes
+// To updated records cross-account, use CrossAccountRoute53RecordSet construct
+// It needs to know what zone to update and what IAM Role to assume
+// To get zone, use hosted zone id provided by resolveHostedZoneId() helper method
+// To get IAM role ARN use crossAccountRoleArn() helper method
 const zoneIdParam = zoneHelper.resolveHostedZoneId();
 
 const zone = HostedZone.fromHostedZoneAttributes(this, "zone", {
   hostedZoneId: zoneIdParam.stringValue,
-  zoneName: zoneHelper.processDomain(domain, true),
+  zoneName: zoneHelper.extractTld(domain),
 });
 
-const validationRole: IRole = Role.fromRoleArn(
+const dnsRole: IRole = Role.fromRoleArn(
   this,
-  "ValidationRole",
+  "dnsRole",
   zoneHelper.crossAccountRoleArn(),
 );
 
@@ -119,9 +121,9 @@ const record: ResourceRecordSet = {
 };
 
 new CrossAccountRoute53RecordSet(this, "GoogleVerification", {
-  delegationRoleName: this.roleName,
-  delegationRoleAccount: this.zoneAccountId,
-  hostedZoneId,
+  delegationRoleName: dnsRole.roleName,
+  delegationRoleAccount: dnsAccount,
+  hostedZoneId: zone.hostedZoneId,
   resourceRecordSets: [record],
 });
 ```

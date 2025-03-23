@@ -57,18 +57,23 @@ if (project.github) {
     (wf) => wf.name === "build",
   );
 
-  if (buildWorkflow) {
+  const upgradeWorkflow = project.github.workflows.find(
+    (wf) => wf.name === "upgrade-main",
+  );
+
+  // console.log("upgradeWorkflow", upgradeWorkflow);
+
+  if (buildWorkflow && upgradeWorkflow) {
     const buildJob = buildWorkflow.getJob("build");
     const jsJob = buildWorkflow.getJob("package-js");
-    const upgtradeJob = buildWorkflow.getJob("upgrade");
-
+    const upgradeJob = upgradeWorkflow.getJob("upgrade");
     if (
       buildJob &&
       "steps" in buildJob &&
       jsJob &&
       "steps" in jsJob &&
-      upgtradeJob &&
-      "steps" in upgtradeJob
+      upgradeJob &&
+      "steps" in upgradeJob
     ) {
       const corepack = {
         name: "Install Specific Yarn Version",
@@ -77,6 +82,7 @@ if (project.github) {
 
       const buildSteps = buildJob.steps as unknown as () => JobStep[];
       const jsSteps = jsJob.steps as unknown as JobStep[];
+      const upgradeSteps = upgradeJob.steps as unknown as JobStep[];
 
       buildWorkflow.updateJob("package-js", {
         ...jsJob,
@@ -88,9 +94,9 @@ if (project.github) {
         steps: [corepack, ...buildSteps()],
       });
 
-      buildWorkflow.updateJob("upgrade", {
-        ...upgtradeJob,
-        steps: [corepack, ...buildSteps()],
+      upgradeWorkflow.updateJob("upgrade", {
+        ...upgradeJob,
+        steps: [corepack, ...upgradeSteps],
       });
     }
   }
