@@ -14,8 +14,6 @@ jobs:
     env:
       CI: "true"
     steps:
-      - name: Install Specific Yarn Version
-        run: corepack enable && yarn set version 4.6.0
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -98,8 +96,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Install Specific Yarn Version
-        run: corepack enable && yarn set version 4.6.0
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:

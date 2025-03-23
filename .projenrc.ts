@@ -60,8 +60,16 @@ if (project.github) {
   if (buildWorkflow) {
     const buildJob = buildWorkflow.getJob("build");
     const jsJob = buildWorkflow.getJob("package-js");
+    const upgtradeJob = buildWorkflow.getJob("upgrade");
 
-    if (buildJob && "steps" in buildJob && jsJob && "steps" in jsJob) {
+    if (
+      buildJob &&
+      "steps" in buildJob &&
+      jsJob &&
+      "steps" in jsJob &&
+      upgtradeJob &&
+      "steps" in upgtradeJob
+    ) {
       const corepack = {
         name: "Install Specific Yarn Version",
         run: "corepack enable && yarn set version 4.6.0",
@@ -77,6 +85,11 @@ if (project.github) {
 
       buildWorkflow.updateJob("build", {
         ...buildJob,
+        steps: [corepack, ...buildSteps()],
+      });
+
+      buildWorkflow.updateJob("upgrade", {
+        ...upgtradeJob,
         steps: [corepack, ...buildSteps()],
       });
     }
