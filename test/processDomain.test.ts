@@ -89,7 +89,7 @@ describe("PublicHostedZoneClient", () => {
     test("creates an SSM parameter for hosted zone lookup", () => {
       const sharingParameterArn = `arn:aws:ssm:${region}:${accountId}:parameter/shared/${tldDomain}/zone-id`;
       // const domainId = client.processDomain(tldDomain, true);
-      const param = client.resolveHostedZoneId();
+      const param = client.resolveHostedZoneId(domain);
 
       expect(stack.resolve(param.parameterArn)).toEqual(sharingParameterArn);
       expect(stack.resolve(param.parameterName)).toEqual(`zone-id`);

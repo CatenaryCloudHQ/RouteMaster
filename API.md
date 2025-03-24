@@ -48,8 +48,11 @@ new PublicHostedZoneClient(scope: Construct, id: string, props: PublicHostedZone
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.crossAccountRoleArn">crossAccountRoleArn</a></code> | Returns the IAM role ARN for Route 53 cross-account access. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.extractNamespaceDomain">extractNamespaceDomain</a></code> | Strips leading non-domain characters and returns the cleaned domain. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.extractTld">extractTld</a></code> | Extracts the second-level domain (zone identifier) from a full domain name. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.isPatternDomain">isPatternDomain</a></code> | Determines if domain contains wildcard pattern (e.g. "*-test.acme.com") without being a classic wildcard subdomain like "*.test.acme.com". |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.isPlainSubdomain">isPlainSubdomain</a></code> | Returns true for plain subdomain with only dots and hyphens Must start and end with alphanumeric Wildcards not allowed Assumes input is already lowercase. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.isWildCardDomain">isWildCardDomain</a></code> | Test if domain wildcard. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.normalizeDomain">normalizeDomain</a></code> | Normalizes a domain string for use in Route53 condition keys. |
-| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.resolveHostedZoneId">resolveHostedZoneId</a></code> | Creates and returns IStringParameter that contains zone id (param.stringvalue). |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.resolveHostedZoneId">resolveHostedZoneId</a></code> | For a given domain (ok to include any subdomains), it creates and returns IStringParameter that contains zone id (param.stringvalue). |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.zoneAccount">zoneAccount</a></code> | Zone account id. |
 
 ---
@@ -112,6 +115,52 @@ Example: "a.b.c.dev.acme.com" → "acme.com"
 
 ---
 
+##### `isPatternDomain` <a name="isPatternDomain" id="@catenarycloud/routemaster.PublicHostedZoneClient.isPatternDomain"></a>
+
+```typescript
+public isPatternDomain(input: string): boolean
+```
+
+Determines if domain contains wildcard pattern (e.g. "*-test.acme.com") without being a classic wildcard subdomain like "*.test.acme.com".
+
+###### `input`<sup>Required</sup> <a name="input" id="@catenarycloud/routemaster.PublicHostedZoneClient.isPatternDomain.parameter.input"></a>
+
+- *Type:* string
+
+domain string.
+
+---
+
+##### `isPlainSubdomain` <a name="isPlainSubdomain" id="@catenarycloud/routemaster.PublicHostedZoneClient.isPlainSubdomain"></a>
+
+```typescript
+public isPlainSubdomain(input: string): boolean
+```
+
+Returns true for plain subdomain with only dots and hyphens Must start and end with alphanumeric Wildcards not allowed Assumes input is already lowercase.
+
+###### `input`<sup>Required</sup> <a name="input" id="@catenarycloud/routemaster.PublicHostedZoneClient.isPlainSubdomain.parameter.input"></a>
+
+- *Type:* string
+
+---
+
+##### `isWildCardDomain` <a name="isWildCardDomain" id="@catenarycloud/routemaster.PublicHostedZoneClient.isWildCardDomain"></a>
+
+```typescript
+public isWildCardDomain(input: string): boolean
+```
+
+Test if domain wildcard.
+
+###### `input`<sup>Required</sup> <a name="input" id="@catenarycloud/routemaster.PublicHostedZoneClient.isWildCardDomain.parameter.input"></a>
+
+- *Type:* string
+
+domain name.
+
+---
+
 ##### `normalizeDomain` <a name="normalizeDomain" id="@catenarycloud/routemaster.PublicHostedZoneClient.normalizeDomain"></a>
 
 ```typescript
@@ -133,10 +182,16 @@ Example: "*-Dev.Acme.com." → "\052-dev.acme.com"
 ##### `resolveHostedZoneId` <a name="resolveHostedZoneId" id="@catenarycloud/routemaster.PublicHostedZoneClient.resolveHostedZoneId"></a>
 
 ```typescript
-public resolveHostedZoneId(): IStringParameter
+public resolveHostedZoneId(domain: string): IStringParameter
 ```
 
-Creates and returns IStringParameter that contains zone id (param.stringvalue).
+For a given domain (ok to include any subdomains), it creates and returns IStringParameter that contains zone id (param.stringvalue).
+
+###### `domain`<sup>Required</sup> <a name="domain" id="@catenarycloud/routemaster.PublicHostedZoneClient.resolveHostedZoneId.parameter.domain"></a>
+
+- *Type:* string
+
+---
 
 ##### `zoneAccount` <a name="zoneAccount" id="@catenarycloud/routemaster.PublicHostedZoneClient.zoneAccount"></a>
 

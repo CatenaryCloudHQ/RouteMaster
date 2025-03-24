@@ -145,7 +145,7 @@ describe("PublicHostedZoneWithReusableDelegationSet", () => {
             Condition: {
               "ForAllValues:StringLike": {
                 "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
-                  "example.com",
+                  "*.example.com",
                 ],
               },
             },
@@ -193,20 +193,124 @@ describe("PublicHostedZoneWithReusableDelegationSet", () => {
         ]),
       },
     });
+  });
+  test("should create role with equals + like for plain subdomain", () => {
+    const zoneConstruct = new PublicHostedZoneWithReusableDelegationSet(
+      stack,
+      "TestPlain",
+      {
+        delegationSet: set,
+        orgId: "test-org-id",
+        orgRootId: "test-org-root-id",
+        orgAccountId: "123456789012",
+      },
+    );
+
+    zoneConstruct.addZone("acme.com");
+    zoneConstruct.shareZoneWithRAM("acme.com", ["org1"]);
+    zoneConstruct.createRoute53Role(["org1"], ["dev.acme.com"]);
+
+    const template = Template.fromStack(stack);
 
     template.hasResourceProperties("AWS::IAM::Policy", {
       PolicyDocument: {
         Statement: Match.arrayWith([
           Match.objectLike({
-            Action: "route53:ChangeResourceRecordSets",
-            Condition: {
-              "ForAllValues:StringLike": {
+            Condition: Match.objectLike({
+              "ForAllValues:StringEquals": Match.objectLike({
                 "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
-                  "dev.acme.com",
-                  "\\052dev.example.com",
+                  "\\052.dev.acme.com",
                 ],
-              },
-            },
+              }),
+            }),
+          }),
+          Match.objectLike({
+            Condition: Match.objectLike({
+              "ForAllValues:StringLike": Match.objectLike({
+                "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
+                  "*.dev.acme.com",
+                ],
+              }),
+            }),
+          }),
+        ]),
+      },
+    });
+  });
+
+  test("should create role with like-only for pattern domain", () => {
+    const zoneConstruct = new PublicHostedZoneWithReusableDelegationSet(
+      stack,
+      "TestPattern",
+      {
+        delegationSet: set,
+        orgId: "test-org-id",
+        orgRootId: "test-org-root-id",
+        orgAccountId: "123456789012",
+      },
+    );
+
+    zoneConstruct.addZone("acme.com");
+    zoneConstruct.shareZoneWithRAM("acme.com", ["org1"]);
+    zoneConstruct.createRoute53Role(["org1"], ["*-test.acme.com"]);
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties("AWS::IAM::Policy", {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Condition: Match.objectLike({
+              "ForAllValues:StringLike": Match.objectLike({
+                "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
+                  "*-test.acme.com",
+                ],
+              }),
+            }),
+          }),
+        ]),
+      },
+    });
+  });
+
+  test("should create role with equals + like for wildcard domain", () => {
+    const zoneConstruct = new PublicHostedZoneWithReusableDelegationSet(
+      stack,
+      "TestWildcard",
+      {
+        delegationSet: set,
+        orgId: "test-org-id",
+        orgRootId: "test-org-root-id",
+        orgAccountId: "123456789012",
+      },
+    );
+
+    zoneConstruct.addZone("example.com");
+    zoneConstruct.shareZoneWithRAM("example.com", ["org1"]);
+    zoneConstruct.createRoute53Role(["org1"], ["*.internal.example.com"]);
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties("AWS::IAM::Policy", {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Condition: Match.objectLike({
+              "ForAllValues:StringEquals": Match.objectLike({
+                "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
+                  "\\052.internal.example.com",
+                ],
+              }),
+            }),
+          }),
+          Match.objectLike({
+            Condition: Match.objectLike({
+              "ForAllValues:StringLike": Match.objectLike({
+                "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
+                  "*.internal.example.com",
+                ],
+              }),
+            }),
           }),
         ]),
       },
