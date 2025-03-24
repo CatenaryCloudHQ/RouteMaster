@@ -9,7 +9,7 @@ import {
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { CfnResourceShare } from "aws-cdk-lib/aws-ram";
-import { HostedZone, IHostedZone, RecordType } from "aws-cdk-lib/aws-route53";
+import { HostedZone, IHostedZone } from "aws-cdk-lib/aws-route53";
 import { ParameterTier, StringParameter } from "aws-cdk-lib/aws-ssm";
 import {
   AwsCustomResource,
@@ -264,31 +264,22 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
    * @throws If zone for any domain was not shared before creating the role
    */
   createRoute53Role(OUs: string[], domains: string[]): void {
-    // Determine if role should enable access to multiple zones (domains) and use it as suffix
-    let multiZoneSuffix: string = domains.length > 1 ? "-MtplZn" : "";
-
-    // Prefix to name role and policy
+    const multiZoneSuffix = domains.length > 1 ? "-MtplZn" : "";
     const firstDomain = this.zoneHelper.extractNamespaceDomain(domains[0]);
+
     const domainZoneArns: string[] = [];
     const ouPaths: string[] = [];
-    const normalizedDomains: string[] = [];
 
-    // Prepare OUs list
-    OUs.forEach((o: string) => {
+    const stringLike: string[] = [];
+    const stringEquals: string[] = [];
+
+    for (const ou of OUs) {
       ouPaths.push(
-        `${this.props.orgId}/r-${this.props.orgRootId}/ou-${this.props.orgRootId}-${o}/`,
+        `${this.props.orgId}/r-${this.props.orgRootId}/ou-${this.props.orgRootId}-${ou}/`,
       );
-    });
+    }
 
-    // Get all record types Route53 has to set it in the permissions
-    const recordTypes = Object.values(
-      RecordType,
-    ) as (keyof typeof RecordType)[];
-
-    // Check if zone for domain exist and if zone for the domain was shared in RAM
-    domains.forEach((d: string) => {
-      normalizedDomains.push(this.zoneHelper.normalizeDomain(d));
-
+    for (const d of domains) {
       const tld = this.zoneHelper.extractTld(d);
       domainZoneArns.push(this.publicHostedZones[tld].hostedZoneArn);
 
@@ -297,35 +288,74 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
           `Zone ${d} must be shared with RAM before we can create a role for. Use shareZoneWithRAM method.`,
         );
       }
-    });
 
-    // Custom policy that allows access to the zone(s)
+      if (this.zoneHelper.isWildCardDomain(d)) {
+        stringEquals.push(this.zoneHelper.normalizeDomain(d));
+        stringLike.push(d);
+        continue;
+      }
+
+      if (this.zoneHelper.isPatternDomain(d)) {
+        stringLike.push(d);
+        continue;
+      }
+
+      if (this.zoneHelper.isPlainSubdomain(d)) {
+        const wildcard = `*.${d}`;
+        stringEquals.push(this.zoneHelper.normalizeDomain(wildcard));
+        stringLike.push(wildcard);
+        continue;
+      }
+    }
+
+    const statements = [];
+
+    statements.push(
+      // cross-account cert manager is using this permission
+      new PolicyStatement({
+        actions: ["route53:GetChange"],
+        resources: ["*"],
+      }),
+    );
+
+    if (stringEquals.length > 0) {
+      statements.push(
+        new PolicyStatement({
+          actions: ["route53:ChangeResourceRecordSets"],
+          resources: domainZoneArns,
+          conditions: {
+            "ForAllValues:StringEquals": {
+              "route53:ChangeResourceRecordSetsNormalizedRecordNames":
+                stringEquals,
+            },
+          },
+        }),
+      );
+    }
+
+    if (stringLike.length > 0) {
+      statements.push(
+        new PolicyStatement({
+          actions: ["route53:ChangeResourceRecordSets"],
+          resources: domainZoneArns,
+          conditions: {
+            "ForAllValues:StringLike": {
+              "route53:ChangeResourceRecordSetsNormalizedRecordNames":
+                stringLike,
+            },
+          },
+        }),
+      );
+    }
+
     const policy = new Policy(
       this,
       `R53Policy-${firstDomain}-${multiZoneSuffix}`,
       {
-        statements: [
-          new PolicyStatement({
-            actions: ["route53:ChangeResourceRecordSets"],
-            resources: domainZoneArns,
-            conditions: {
-              "ForAllValues:StringEquals": {
-                "route53:ChangeResourceRecordSetsRecordTypes": recordTypes,
-                "route53:ChangeResourceRecordSetsActions": [
-                  "CREATE",
-                  "UPSERT",
-                  "DELETE",
-                ],
-              },
-              "ForAllValues:StringLike": {
-                "route53:ChangeResourceRecordSetsNormalizedRecordNames":
-                  normalizedDomains.map((d) => (d === "*" ? "\\052" : d)),
-              },
-            },
-          }),
-        ],
+        statements,
       },
     );
+    console.log("Policy", JSON.stringify(policy.document.toJSON(), null, 2));
 
     const r = new Role(this, `Route53Role${firstDomain}${multiZoneSuffix}`, {
       roleName: `R53-${firstDomain}${multiZoneSuffix}`,

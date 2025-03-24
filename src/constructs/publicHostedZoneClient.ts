@@ -32,11 +32,11 @@ export class PublicHostedZoneClient extends Construct {
   }
 
   /**
-   * Creates and returns IStringParameter that contains zone id (param.stringvalue)
+   * For a given domain (ok to include any subdomains), it creates and returns IStringParameter that contains zone id (param.stringvalue)
    * @returns IStringParameter
    */
-  resolveHostedZoneId(): IStringParameter {
-    const domainId = this.extractTld(this.props.domain);
+  resolveHostedZoneId(domain: string): IStringParameter {
+    const domainId = this.extractTld(domain);
     const parameterArn = `arn:aws:ssm:${this.props.region}:${this.props.accountId}:parameter/shared/${domainId}/zone-id`;
 
     return StringParameter.fromStringParameterArn(this, "zone", parameterArn);
@@ -52,6 +52,20 @@ export class PublicHostedZoneClient extends Construct {
     const subDomainId = this.extractNamespaceDomain(this.props.domain);
     const multiZoneSuffix = multiZone ? `-${this.multiZoneSuffix}` : "";
     return `arn:aws:iam::${this.props.accountId}:role/R53-${subDomainId}${multiZoneSuffix}`;
+  }
+
+  /**
+   * Test if domain wildcard
+   * @param input domain name
+   * @returns true if input a wildcard domain *.test.acme.com
+   */
+  public isWildCardDomain(input: string): boolean {
+    try {
+      this.extractTld(input);
+      return input.startsWith("*.");
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -95,5 +109,38 @@ export class PublicHostedZoneClient extends Construct {
    */
   public extractNamespaceDomain(input: string): string {
     return input.replace(/^[^a-z0-9]+/i, "");
+  }
+
+  /**
+   * Determines if domain contains wildcard pattern (e.g. "*-test.acme.com")
+   * without being a classic wildcard subdomain like "*.test.acme.com"
+   *
+   * @param input domain string
+   * @returns true for any embedded wildcard pattern not at start followed by dot
+   */
+  public isPatternDomain(input: string): boolean {
+    try {
+      this.extractTld(input);
+      return input.includes("*") && !input.startsWith("*.");
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Returns true for plain subdomain with only dots and hyphens
+   * Must start and end with alphanumeric
+   * Wildcards not allowed
+   * Assumes input is already lowercase
+   */
+  public isPlainSubdomain(input: string): boolean {
+    try {
+      this.extractTld(input);
+      return (
+        /^[a-z0-9][a-z0-9.-]*[a-z0-9]$/.test(input) && !input.includes("*")
+      );
+    } catch {
+      return false;
+    }
   }
 }

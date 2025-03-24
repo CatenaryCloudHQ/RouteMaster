@@ -80,6 +80,11 @@ export class Route53Resources extends Stack {
   }
 ```
 
+When you create Route53 role to let OUs access domains, think about it as namespace reservation
+
+1. Pure subdomains: `test.acme.com` the Role will grant access to both wildcard and normal subdomain: `*.test.acme.com`, app1.test.acme.com etc
+2. Role with pattern: `*-test.acme.com` will grant access to app-test.acme.com, beta-test.acme.com. It doesn't configure permissions to create wildcard domains such as `*.app-test.acme.com`
+
 And in the app accounts:
 
 ```ts
