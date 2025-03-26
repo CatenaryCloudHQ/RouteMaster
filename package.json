@@ -57,7 +57,7 @@
     "jsii-rosetta": "~5.7.0",
     "prettier": "^3.5.3",
     "projen": "^0.91.14",
-    "ts-jest": "^29.2.6",
+    "ts-jest": "^29.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
@@ -124,7 +124,8 @@
       "^.+\\.[t]sx?$": [
         "ts-jest",
         {
-          "tsconfig": "tsconfig.dev.json"
+          "tsconfig": "tsconfig.dev.json",
+          "diagnostics": true
         }
       ]
     }

@@ -7,7 +7,7 @@ import {
   Role,
 } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { CfnResourceShare } from "aws-cdk-lib/aws-ram";
 import { HostedZone, IHostedZone } from "aws-cdk-lib/aws-route53";
 import { ParameterTier, StringParameter } from "aws-cdk-lib/aws-ssm";
@@ -100,6 +100,7 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
         externalModules: ["@aws-sdk/client-route53"],
         sourceMap: true,
         forceDockerBundling: false,
+        logLevel: LogLevel.SILENT,
       },
     });
 
@@ -355,7 +356,6 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
         statements,
       },
     );
-    console.log("Policy", JSON.stringify(policy.document.toJSON(), null, 2));
 
     const r = new Role(this, `Route53Role${firstDomain}${multiZoneSuffix}`, {
       roleName: `R53-${firstDomain}${multiZoneSuffix}`,

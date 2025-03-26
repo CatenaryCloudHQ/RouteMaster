@@ -24,8 +24,6 @@ dist
 tsconfig.tsbuildinfo
 /.eslintrc.json
 !.jsii
-.yarn
-.yarn*
 /.gitattributes
 /.projenrc.ts
 /projenrc

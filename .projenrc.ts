@@ -61,8 +61,6 @@ if (project.github) {
     (wf) => wf.name === "upgrade-main",
   );
 
-  // console.log("upgradeWorkflow", upgradeWorkflow);
-
   if (buildWorkflow && upgradeWorkflow) {
     const buildJob = buildWorkflow.getJob("build");
     const jsJob = buildWorkflow.getJob("package-js");
@@ -103,6 +101,18 @@ if (project.github) {
 }
 
 // Add some extras to npmignore
-project.npmignore?.addPatterns(".yarn", ".yarn*");
+if (project.jest) {
+  project.jest.config.transform = {
+    "^.+\\.[t]sx?$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.dev.json",
+        diagnostics: true,
+      },
+    ],
+  };
+}
+
+project.tsconfigDev?.file.addOverride("compilerOptions.isolatedModules", true);
 
 project.synth();
