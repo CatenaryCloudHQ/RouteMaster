@@ -303,8 +303,12 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
 
       if (this.zoneHelper.isPlainSubdomain(d)) {
         const wildcard = `*.${d}`;
+        // Add permissions for records in the domain itself dev.acme.com
         stringEquals.push(this.zoneHelper.normalizeDomain(wildcard));
+        // Then all subdomains match: *.dev.acme.com
         stringLike.push(wildcard);
+        // Finally the wildcard itself: *.dev.acme.com
+        stringEquals.push(this.zoneHelper.normalizeDomain(d));
         continue;
       }
     }
