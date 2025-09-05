@@ -291,24 +291,46 @@ export class PublicHostedZoneWithReusableDelegationSet extends Construct {
       }
 
       if (this.zoneHelper.isWildCardDomain(d)) {
+        // *.dev.acme.com must create: wildcard domain match, star match for *.dev.acme.com, and match for dev.acme.com
+        const baseDomain = d.substring(2); // Remove "*." prefix to get "dev.acme.com"
+
+        // Wildcard domain match (normalized)
         stringEquals.push(this.zoneHelper.normalizeDomain(d));
+        // Star match for *.dev.acme.com
         stringLike.push(d);
+        // Match for dev.acme.com
+        stringEquals.push(this.zoneHelper.normalizeDomain(baseDomain));
         continue;
       }
 
       if (this.zoneHelper.isPatternDomain(d)) {
-        stringLike.push(d);
+        // Pattern domains: handle different cases
+        if (d.startsWith("*")) {
+          // Leading asterisk case like *-test.acme.com - only add original pattern
+          stringLike.push(d);
+        } else {
+          // Trailing asterisk case like dev*.acme.com - add all three patterns per requirements
+          const cleanDomain = d.replace(/\*/g, ""); // Remove asterisks to get "dev.acme.com"
+
+          // Star match for dev*.acme.com
+          stringLike.push(d);
+          // Match for dev.acme.com
+          stringLike.push(cleanDomain);
+          // Match for *.dev*.acme.com
+          stringLike.push(`*.${d}`);
+        }
         continue;
       }
 
       if (this.zoneHelper.isPlainSubdomain(d)) {
+        // dev.acme.com must create: star string match for dev.acme.com AND *.dev.acme.com - but not wildcard
         const wildcard = `*.${d}`;
-        // Add permissions for records in the domain itself dev.acme.com
-        stringEquals.push(this.zoneHelper.normalizeDomain(wildcard));
-        // Then all subdomains match: *.dev.acme.com
-        stringLike.push(wildcard);
-        // Finally the wildcard itself: *.dev.acme.com
+
+        // Star string match for dev.acme.com
         stringEquals.push(this.zoneHelper.normalizeDomain(d));
+        // Match for *.dev.acme.com
+        stringEquals.push(this.zoneHelper.normalizeDomain(wildcard));
+        stringLike.push(wildcard);
         continue;
       }
     }

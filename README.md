@@ -80,10 +80,32 @@ export class Route53Resources extends Stack {
   }
 ```
 
-When you create Route53 role to let OUs access domains, think about it as namespace reservation
+## Domain Processing Patterns
 
-1. Pure subdomains: `test.acme.com` the Role will grant access to both wildcard and normal subdomain: `*.test.acme.com`, app1.test.acme.com etc
-2. Role with pattern: `*-test.acme.com` will grant access to app-test.acme.com, beta-test.acme.com. It doesn't configure permissions to create wildcard domains such as `*.app-test.acme.com`
+RouteMaster supports three distinct domain patterns with different permission sets:
+
+### 1. Wildcard domains: `*.dev.acme.com`
+Creates permissions for:
+- Wildcard domain match (normalized): `\052.dev.acme.com`
+- Star match: `*.dev.acme.com`  
+- Base domain match: `dev.acme.com`
+
+### 2. Pattern domains: `dev*.acme.com`
+Creates permissions for:
+- Star match: `dev*.acme.com` (matches `dev1.acme.com`, `dev-test.acme.com`)
+- Base domain match: `dev.acme.com`
+- Nested wildcard match: `*.dev*.acme.com`
+
+### 3. Plain subdomains: `dev.acme.com`
+Creates permissions for:
+- Domain match: `dev.acme.com`
+- Wildcard subdomain match: `*.dev.acme.com`
+
+**Role Naming**: Role names are always clean - asterisks are removed. For example, `dev*.acme.com` creates role `R53-dev.acme.com`.
+
+**Multiple Domain Roles**: When creating roles for multiple domains, the `-MtplZn` suffix is automatically added to distinguish them from single-domain roles. The role name uses the first domain as the base. For example:
+- Single domain: `createRoute53Role(["ou1"], ["dev.acme.com"])` creates `R53-dev.acme.com`
+- Multiple domains: `createRoute53Role(["ou1"], ["dev.acme.com", "test.example.com"])` creates `R53-dev.acme.com-MtplZn`
 
 And in the app accounts:
 

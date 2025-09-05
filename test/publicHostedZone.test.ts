@@ -219,8 +219,8 @@ describe("PublicHostedZoneWithReusableDelegationSet", () => {
             Condition: Match.objectLike({
               "ForAllValues:StringEquals": Match.objectLike({
                 "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
-                  "\\052.dev.acme.com",
                   "dev.acme.com",
+                  "\\052.dev.acme.com",
                 ],
               }),
             }),
@@ -300,6 +300,7 @@ describe("PublicHostedZoneWithReusableDelegationSet", () => {
               "ForAllValues:StringEquals": Match.objectLike({
                 "route53:ChangeResourceRecordSetsNormalizedRecordNames": [
                   "\\052.internal.example.com",
+                  "internal.example.com",
                 ],
               }),
             }),
