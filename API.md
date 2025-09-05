@@ -46,7 +46,7 @@ new PublicHostedZoneClient(scope: Construct, id: string, props: PublicHostedZone
 | --- | --- |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.toString">toString</a></code> | Returns a string representation of this construct. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.crossAccountRoleArn">crossAccountRoleArn</a></code> | Returns the IAM role ARN for Route 53 cross-account access. |
-| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.extractNamespaceDomain">extractNamespaceDomain</a></code> | Strips leading non-domain characters and returns the cleaned domain. |
+| <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.extractNamespaceDomain">extractNamespaceDomain</a></code> | Strips leading non-domain characters and all asterisks to return clean domain for role naming. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.extractTld">extractTld</a></code> | Extracts the second-level domain (zone identifier) from a full domain name. |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.isPatternDomain">isPatternDomain</a></code> | Determines if domain contains wildcard pattern (e.g. "*-test.acme.com") without being a classic wildcard subdomain like "*.test.acme.com". |
 | <code><a href="#@catenarycloud/routemaster.PublicHostedZoneClient.isPlainSubdomain">isPlainSubdomain</a></code> | Returns true for plain subdomain with only dots and hyphens Must start and end with alphanumeric Wildcards not allowed Assumes input is already lowercase. |
@@ -87,10 +87,12 @@ Optional switch to use multi zone suffix - the client must be aware if domain sh
 public extractNamespaceDomain(input: string): string
 ```
 
-Strips leading non-domain characters and returns the cleaned domain.
+Strips leading non-domain characters and all asterisks to return clean domain for role naming.
 
-If subdomains exist, returns full domain after prefix removal.
-Example: "!test.env.acme.com" → "test.env.acme.com"
+If subdomains exist, returns full domain after prefix removal and asterisk cleanup.
+Example: "*.dev.acme.com" → "dev.acme.com"
+Example: "dev*.acme.com" → "dev.acme.com"
+Example: "*dev*test*.acme.com" → "devtest.acme.com"
 
 ###### `input`<sup>Required</sup> <a name="input" id="@catenarycloud/routemaster.PublicHostedZoneClient.extractNamespaceDomain.parameter.input"></a>
 

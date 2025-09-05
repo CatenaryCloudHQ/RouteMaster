@@ -103,12 +103,14 @@ export class PublicHostedZoneClient extends Construct {
   }
 
   /**
-   * Strips leading non-domain characters and returns the cleaned domain.
-   * If subdomains exist, returns full domain after prefix removal.
-   * Example: "!test.env.acme.com" → "test.env.acme.com"
+   * Strips leading non-domain characters and all asterisks to return clean domain for role naming.
+   * If subdomains exist, returns full domain after prefix removal and asterisk cleanup.
+   * Example: "*.dev.acme.com" → "dev.acme.com"
+   * Example: "dev*.acme.com" → "dev.acme.com"
+   * Example: "*dev*test*.acme.com" → "devtest.acme.com"
    */
   public extractNamespaceDomain(input: string): string {
-    return input.replace(/^[^a-z0-9]+/i, "");
+    return input.replace(/^[^a-z0-9]+/i, "").replace(/\*/g, "");
   }
 
   /**
